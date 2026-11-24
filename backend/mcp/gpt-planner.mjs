@@ -71,6 +71,7 @@ async function freePlan(prompt){
 }
 export async function generatePlan(prompt){
   if(process.env.OPENROUTER_API_KEY)return freePlan(prompt);
+  if(process.env.SYNQORA_USE_CODEX!=="1")throw Object.assign(Error("OpenRouter key missing in server terminal. Set OPENROUTER_API_KEY and restart the demo. Codex fallback disabled."),{status:503});
   if(process.env.OPENAI_API_KEY||process.env.CODEX_API_KEY)throw Object.assign(Error("Metered API credentials present; use existing ChatGPT login only"),{status:503});
   const command=executable(), cwd=await mkdtemp(join(tmpdir(),"synqora-plan-"));
   try{
