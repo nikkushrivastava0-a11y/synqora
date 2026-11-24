@@ -3,6 +3,8 @@ import { randomBytes } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { openCampus, operate, inputs, id, workspace } from "./campus.mjs";
+import { generatePlan, planInput } from "./gpt-planner.mjs";
+let planning = false;
 
 const dir = resolve(process.env.SYNQORA_STATE_DIR ?? ".synqora-local");
 await mkdir(dir, { recursive: true, mode: 0o700 });
@@ -76,6 +78,19 @@ const server = createServer(async (req, res) => {
       }
     }
     if (!body || typeof body !== "object" || Array.isArray(body)) throw error(400, "Expected a JSON object");
+    if(prefix==="api" && group==="workspaces" && target===workspace && action==="plan" && req.method==="POST"){
+      if(user!==id(3))throw error(403,"Human operator required");
+      const input=planInput.parse(body);
+      if(planning)throw error(409,"Planner already running");
+      planning=true;
+      try{
+        const generated=await generatePlan(input.prompt);
+        const data=await operate(db,user,"saveDynamicPlan",workspace,{...input,...generated});
+        res.writeHead(200,{"Content-Type":"application/json","Cache-Control":"no-store"});
+        res.end(JSON.stringify({success:true,data}));
+      }finally{planning=false;}
+      return;
+    }
     let op,
       scope = target;
     if (
