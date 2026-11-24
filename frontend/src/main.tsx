@@ -324,7 +324,7 @@ function App() {
           <span className="mode">{mockMode ? "MOCK MODE" : "LIVE API"}</span>
         </header>
         <div className={"canvas" + (paused ? " still" : "")} key={view}>
-          <div className="ambient-scene" aria-hidden="true"><div className="ambient-grid" /><div className="ambient-orb"><Orbit paused={paused} /></div>{Array.from({length: 18}, (_, i) => <i key={i} style={{left: `${(i * 37 + 9) % 100}%`, top: `${(i * 23 + 11) % 100}%`, animationDelay: `${-i * 0.7}s`}} />)}</div>
+
           <section className={"hero" + (paused ? " still" : "")}>
             <Orbit paused={paused} />
             <div className="hero-copy">
@@ -362,6 +362,14 @@ function App() {
               {paused ? "▶" : "Ⅱ"}
             </button>
           </section>
+          <div className="operations-scene">
+            <div className="scene-art" aria-hidden="true">
+              <div className="terrain" />
+              <div className="planet"><div className="planet-core" />{Array.from({ length: 7 }, (_, i) => <span className="longitude" key={i} style={{ transform: `rotateY(${i * 180 / 7}deg)` }} />)}{Array.from({ length: 5 }, (_, i) => <span className="latitude" key={i} style={{ transform: `translateY(${(i - 2) * 36}px) rotateX(90deg) scale(${Math.sqrt(1 - ((i - 2) * 36 / 110) ** 2)})` }} />)}</div>
+              <div className="orbital-trails"><i /><i /><i /></div>
+              <div className="light-beam" />
+              {Array.from({ length: 32 }, (_, i) => <i className="scene-star" key={i} style={{ left: `${(i * 37 + 9) % 100}%`, top: `${(i * 23 + 11) % 100}%`, animationDelay: `${-i * .37}s` }} />)}
+            </div>
           {err && (
             <div className="error" role="alert">
               {err}
@@ -816,9 +824,9 @@ function App() {
             </>
           )}
           <footer className="mission-footer">
-            <div className="footer-art" aria-hidden="true"><Orbit paused={paused} /></div>
             <div className="footer-copy"><div className="eyebrow"><span /> SYNQORA / WORKSPACE</div><h2>Intelligence in motion.</h2><p>Shared context. Traceable decisions. Coordinated execution.</p><small>{mockMode ? "Demo mode" : err ? "API connection issue" : s ? "Workspace loaded" : "Connecting to workspace"}</small></div>
           </footer>
+          </div>
         </div>
       </main>
       {task && (
