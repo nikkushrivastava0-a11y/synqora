@@ -25,7 +25,7 @@ console.log("Running real Gemini review of saved plan",plan.planId);
 const input={planId:plan.planId,revision:plan.revision,reviewTaskId:plan.reviewTaskId,operationId:randomUUID()};
 const review=await api(base+"/review",input);
 assert.equal(review.state,"accepted");
-assert.equal(review.provider,"Google Gemini CLI");
+assert.equal(review.provider,"Google Gemini API");
 assert.match(review.model,/flash/);
 assert.ok(review.rawResponse && review.reviewId);
 const record=await api("/mcp/read_record",{recordId:review.reviewId},reviewer);
