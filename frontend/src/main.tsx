@@ -1,4 +1,3 @@
-import { Orbit } from "./Orbit";
 import { createRoot } from "react-dom/client";
 import {
   useEffect,
@@ -843,7 +842,7 @@ function Entry() {
     try {
       const { error } = await auth.auth.signInWithOAuth({
         provider: "google",
-        options: { redirectTo: location.origin + location.pathname },
+        options: { redirectTo: location.origin + location.pathname, queryParams: { prompt: "select_account" } },
       });
       if (error) setMessage(error.message);
     } catch {
@@ -861,7 +860,6 @@ function Entry() {
   if (login || (auth && !signedIn)) return (
     <main className="login-screen">
       <section className="login-card">
-        <div className="login-art" aria-hidden="true"><Orbit paused={false} /></div>
         <div className="brand"><span><Layers3 /></span>SYNQORA</div>
         <h1>Sign in</h1>
         <p>Access your team workspace.</p>
