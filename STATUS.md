@@ -1,13 +1,17 @@
-# First-round freeze
+# Judging build
 
-| Step | Outcome | Evidence or remaining check |
-|---|---|---|
-| 1 | DONE | Backend PR #1 and frontend PR #2 merged into main. Backend lint, typecheck, build and 5 tests passed. Frontend lint, typecheck, build and 2 tests passed. |
-| 2 | DONE for supported flow; SKIPPED agent-created tasks | Linux Chromium exercised real frontend and backend. Same-origin proxy on 4173 sends authenticated requests to loopback 4317. Planner and reviewer claim seeded tasks. Approval saved, same-operation replay 1/1/1. Creating tasks via agent would require a new feature. Browser walkthrough exercised approve; reject was not selected in that run. |
-| 3 | DONE | start-demo.cmd installs dependencies as needed and launches the shared supervisor. Production frontend preview and backend ran together on Linux. Windows wrapper and automatic browser opening not run on Windows. |
-| 4 | DONE | Supervisor reset archived isolated state and reseeded: five tasks, zero impact, zero events through frontend proxy. Wrapper not run on Windows. |
-| 5 | DONE | DEMO.md has the spoken walkthrough, five judge questions and live AI-client limitation. |
-| 6 | DONE | BACKUP.md gives a timed recording sequence. judge-check-output.txt contains local checks. No video captured in this freeze. |
-| 7 | DONE | Delivery branch main. No submission or deployment performed. |
+The Windows entry point is start-demo.cmd (Node 24). Leave the demo console open. For the live handoff, double-click backend/mcp/check-gemini-read.cmd while the board is fresh. The launcher uses the installed Codex and Google Antigravity clients and their existing account sign-ins. It passes the saved plan ID into a new reviewer session. Subsequent runs look up committed operations before starting either client.
 
-Before judging: close old ports, double-click start-demo.cmd, verify LIVE API, run the BACKUP.md operator walkthrough, refresh, and open a saved result. Verify Windows reset on a rehearsal dataset. Gemini/Codex cross-session retrieval is pending.
+| Check | Result |
+| --- | --- |
+| Backend lint, typecheck, build and five tests | Passed on Linux. Includes stale-submission conflict, actor-scoped replay, actual caller termination after commit, both MCP roles, and a review pinned to the original plan revision. |
+| Frontend lint, typecheck, build and two tests | Passed on Linux. |
+| Full demo through Chromium | Passed against the real loopback API. Real human approval controls were exercised with a local human session. The rehearsal used scripted agent operations. |
+| Reset | Passed after the walkthrough on Linux. Five tasks, zero impact, zero events and working task detail after reset. |
+| Windows launch and live Codex/Google run | Pending on a Windows laptop with both signed-in clients. This execution environment has no Windows desktop and no Google agent executable. Codex previously stopped at its sandbox startup. |
+| Public preview | Uses browser-local data. The shared-agent run uses the local judge server. |
+| Manual time baseline | Unmeasured. |
+
+After a successful live run, the launcher prints the plan ID, review ID, source plan revision, actor IDs, submission event IDs and seconds between both saves. The same fields are saved in backend/mcp/.synqora-local/judge/current/live-handoff-proof.json. Keep the sessions.json file private. A missing client, uncommitted result or incomplete audit trail leaves the run pending. Do a live handoff and scripted browser rehearsal on separate fresh seeds. Reset archives the old evidence directory.
+
+For the presentation use DEMO.md and BACKUP.md. Raw automated output is in judge-check-output.txt.

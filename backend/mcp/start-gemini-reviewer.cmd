@@ -1,9 +1,9 @@
 @echo off
 setlocal
-set "SYNQORA_BACKEND=%USERPROFILE%\synqora-backend\backend\mcp"
+set "SYNQORA_BACKEND=%~dp0."
 if not exist "%SYNQORA_BACKEND%\local-mcp.mjs" goto missing
 set "SYNQORA_AGENT=reviewer"
-set "SYNQORA_SESSIONS=%SYNQORA_BACKEND%\.synqora-local\sessions.json"
+set "SYNQORA_SESSIONS=%SYNQORA_BACKEND%\.synqora-local\judge\current\sessions.json"
 if not exist "%SYNQORA_SESSIONS%" goto missing
 set "PATH=%LOCALAPPDATA%\agy\bin;%PATH%"
 where agy >nul 2>nul
