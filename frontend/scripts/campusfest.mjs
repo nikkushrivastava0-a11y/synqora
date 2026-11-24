@@ -12,8 +12,6 @@ const env = {
   SYNQORA_SESSIONS: resolve(file),
   VITE_WORKSPACE_ID: "00000000-0000-4000-8000-000000000001",
   VITE_API_BASE_URL: "",
-  VITE_SUPABASE_URL: "",
-  VITE_SUPABASE_PUBLISHABLE_KEY: "",
 };
 const vite = resolve(require.resolve("vite/package.json"), "../bin/vite.js");
 for (const [script, args] of [
