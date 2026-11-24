@@ -31,7 +31,6 @@ import { ApiError, type Workspace, type Payload, type WriteKey } from "./api";
 import { auth, connect, mockMode } from "./runtime";
 import "./style.css";
 import { LiveModels } from "./LiveModels";
-import { campusFest } from "./fixture";
 
 const views = [
   "Task board",
@@ -59,17 +58,6 @@ function Panel({ title, children }: { title: string; children: ReactNode }) {
     </section>
   );
 }
-function DatasetPreview({ view }: { view: View }) {
-  const sample = campusFest();
-  return <section className="panel dataset-preview" aria-label="Read-only sample dataset">
-    <small>CampusFest · Sample dataset · Read-only</small>
-    {view === "Task board" && <><h2>Workspace tasks</h2><p>{sample.tasks.length} sample tasks · {sample.agents.length} agents</p><div className="table"><div className="thead"><span>Task</span><span>Owner</span><span>Status</span><span /></div>{sample.tasks.map(t => <div className="taskrow" key={t.id}><strong>{t.title}</strong><span>{sample.agents.find(a => a.id === t.ownerAgentId)?.name || "Unassigned"}</span><span className={"tag " + t.status}>{tags[t.status]}</span></div>)}</div></>}
-    {view === "Requirement impact" && <><h2>Source requirements</h2>{sample.records.map(r => <article key={r.id}><strong>{r.title} · r{r.revision}</strong><p>{r.body}</p></article>)}<p>No affected dependency paths in the initial sample.</p></>}
-    {view === "Conflicts & approvals" && <><h2>Conflict queue</h2><p>{sample.conflicts.length} conflicts · {sample.overview.pendingApprovals} pending approvals in the initial sample.</p></>}
-    {view === "Evidence timeline" && <><h2>Workspace events</h2>{sample.events.map(e => <article key={e.id}><small>{new Date(e.at).toLocaleString()}</small><h3>{e.action}</h3></article>)}</>}
-    {view === "Recovery proof" && <><h2>Recovery measurements</h2><p>No recovery measurements in the initial sample. Live backend results are required to verify replay.</p></>}
-  </section>;
-}
 function App({ onAccount, accountLabel }: { onAccount: () => void; accountLabel: string }) {
   const [paused, setPaused] = useState(false);
   const [view, setView] = useState<View>("Task board"),
@@ -78,7 +66,6 @@ function App({ onAccount, accountLabel }: { onAccount: () => void; accountLabel:
     [selected, select] = useState(""),
     [filter, setFilter] = useState("all"),
     [err, setErr] = useState(""),
-    [previewAllowed, setPreviewAllowed] = useState(false),
     [denied, setDenied] = useState(false),
     [busy, setBusy] = useState(false),
     [note, setNote] = useState(""),
@@ -101,7 +88,7 @@ function App({ onAccount, accountLabel }: { onAccount: () => void; accountLabel:
     lock = useRef(false),
     attempt = useRef<LastWrite | undefined>(undefined);
   function report(e: unknown) {
-    setPreviewAllowed(e instanceof ApiError && [502, 503, 504].includes(e.status));
+
     if (e instanceof ApiError && [401, 403].includes(e.status)) {
       setData(undefined);
       select("");
@@ -125,7 +112,7 @@ function App({ onAccount, accountLabel }: { onAccount: () => void; accountLabel:
     lock.current = true;
     setBusy(true);
     setErr("");
-    setPreviewAllowed(false);
+
     setDenied(false);
     try {
       api.current ??= await connect();
@@ -174,7 +161,7 @@ function App({ onAccount, accountLabel }: { onAccount: () => void; accountLabel:
     lock.current = true;
     setBusy(true);
     setErr("");
-    setPreviewAllowed(false);
+
     setNote("");
     try {
       const response = await api.current.write(item.key, item.id, item.body);
@@ -392,7 +379,6 @@ function App({ onAccount, accountLabel }: { onAccount: () => void; accountLabel:
           )}
           {denied && <button className="secondary" onClick={onAccount}>Sign in to access workspace</button>}
           {!s && !err && <p role="status">Loading workspace…</p>}
-          {!s && err && previewAllowed && <DatasetPreview view={view} />}
           {s && view === "Task board" && !mockMode && <LiveModels workspace={s} refresh={refresh} />}
           {s && view === "Task board" && (
             <>
