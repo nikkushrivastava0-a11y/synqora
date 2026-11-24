@@ -84,8 +84,15 @@ const server = createServer(async (req, res) => {
       if(planning)throw error(409,"Planner already running");
       planning=true;
       try{
-        const generated=await generatePlan(input.prompt);
-        const data=await operate(db,user,"saveDynamicPlan",workspace,{...input,...generated});
+        let data;
+        try {
+          data=await operate(db,user,"resume_task",null,{operationId:input.operationId});
+          if(data.prompt!==input.prompt||!data.planId)throw error(409,"Operation mismatch");
+        } catch(e) {
+          if(e.status!==404)throw e;
+          const generated=await generatePlan(input.prompt);
+          data=await operate(db,user,"saveDynamicPlan",workspace,{...input,...generated});
+        }
         res.writeHead(200,{"Content-Type":"application/json","Cache-Control":"no-store"});
         res.end(JSON.stringify({success:true,data}));
       }finally{planning=false;}
