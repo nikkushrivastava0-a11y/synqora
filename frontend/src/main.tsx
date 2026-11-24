@@ -58,7 +58,7 @@ function Panel({ title, children }: { title: string; children: ReactNode }) {
     </section>
   );
 }
-function App() {
+function App({ onAccount, accountLabel }: { onAccount: () => void; accountLabel: string }) {
   const [paused, setPaused] = useState(false);
   const [view, setView] = useState<View>("Task board"),
     [menu, setMenu] = useState(false),
@@ -71,8 +71,7 @@ function App() {
     [note, setNote] = useState(""),
     [cited, setCited] = useState(""),
     [retry, setRetry] = useState<LastWrite>(),
-    [recordId, setRecord] = useState(""),
-    [email, setEmail] = useState("");
+    [recordId, setRecord] = useState("");
   const [history, setHistory] = useState<Record<string, string>>({}),
     [retried, setRetried] = useState(false);
   const corrected = useRef(new Map<string, string>());
@@ -322,15 +321,13 @@ function App() {
           <Folder size={16} /> Workspace <ChevronRight size={14} />
           <strong>{s?.overview.name || "Workspace"}</strong>
           <span className="mode">{mockMode ? "MOCK MODE" : "LIVE API"}</span>
+          <button className="secondary account-button" onClick={onAccount}>{accountLabel}</button>
         </header>
         <div className={"canvas" + (paused ? " still" : "")} key={view}>
 
           <section className={"hero" + (paused ? " still" : "")}>
             <Orbit paused={paused} />
             <div className="hero-copy">
-              <div className="eyebrow">
-                <span /> TEAM OPERATIONS
-              </div>
               <div className="heading">
                 <h1>{view}</h1>
                 <button className="secondary" disabled={busy} onClick={refresh}>
@@ -380,40 +377,7 @@ function App() {
               {note}
             </div>
           )}
-          {denied && auth && (
-            <form
-              onSubmit={async (e) => {
-                e.preventDefault();
-                try {
-                  const r = await auth!.auth.signInWithOtp({
-                    email,
-                    options: {
-                      shouldCreateUser: false,
-                      emailRedirectTo: location.origin,
-                    },
-                  });
-                  setNote(
-                    r.error
-                      ? "Sign-in request failed."
-                      : "Check your email for the sign-in link.",
-                  );
-                } catch {
-                  setNote("Sign-in request failed.");
-                }
-              }}
-            >
-              <label>
-                Workspace email
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </label>
-              <button>Send sign-in link</button>
-            </form>
-          )}
+          {denied && <button className="secondary" onClick={onAccount}>Sign in to access workspace</button>}
           {!s && !err && <p role="status">Loading workspace…</p>}
           {s && view === "Task board" && (
             <>
@@ -823,9 +787,7 @@ function App() {
               </Panel>
             </>
           )}
-          <footer className="mission-footer">
-            <div className="footer-copy"><div className="eyebrow"><span /> SYNQORA / WORKSPACE</div><h2>Intelligence in motion.</h2><p>Shared context. Traceable decisions. Coordinated execution.</p><small>{mockMode ? "Demo mode" : err ? "API connection issue" : s ? "Workspace loaded" : "Connecting to workspace"}</small></div>
-          </footer>
+
           </div>
         </div>
       </main>
@@ -862,4 +824,60 @@ function App() {
     </div>
   );
 }
-createRoot(document.getElementById("root")!).render(<App />);
+function Entry() {
+  const [signedIn, setSignedIn] = useState(false);
+  const [ready, setReady] = useState(!auth);
+  const [login, setLogin] = useState(location.hash === "#login");
+  const [message, setMessage] = useState("");
+  const [pending, setPending] = useState(false);
+  useEffect(() => {
+    if (!auth) return;
+    const { data: { subscription } } = auth.auth.onAuthStateChange((event, session) => {
+      setSignedIn(Boolean(session));
+      setReady(true);
+      if (session && (event === "SIGNED_IN" || event === "INITIAL_SESSION")) setLogin(false);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+  async function google() {
+    if (!auth || pending) return;
+    setPending(true);
+    setMessage("");
+    try {
+      const { error } = await auth.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo: location.origin + location.pathname },
+      });
+      if (error) setMessage(error.message);
+    } catch {
+      setMessage("Unable to start Google sign-in. Try again.");
+    } finally { setPending(false); }
+  }
+  async function account() {
+    if (signedIn && auth) {
+      const { error } = await auth.auth.signOut();
+      if (error) { setMessage(error.message); return; }
+      setLogin(true);
+    } else setLogin(true);
+  }
+  if (!ready) return <main className="login-screen"><p role="status">Checking session…</p></main>;
+  if (login || (auth && !signedIn)) return (
+    <main className="login-screen">
+      <section className="login-card">
+        <div className="login-art" aria-hidden="true"><Orbit paused={false} /></div>
+        <div className="brand"><span><Layers3 /></span>SYNQORA</div>
+        <h1>Sign in</h1>
+        <p>Access your team workspace.</p>
+        <button className="google-button" disabled={!auth || pending} onClick={() => void google()}>
+          <svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true"><path fill="#4285F4" d="M43.6 24.5c0-1.4-.1-2.8-.4-4.1H24v7.8h11a9.4 9.4 0 0 1-4.1 6.2v5h6.6c3.8-3.5 6.1-8.7 6.1-14.9z"/><path fill="#34A853" d="M24 44c5.5 0 10.1-1.8 13.5-4.6l-6.6-5c-1.8 1.2-4.2 1.9-6.9 1.9-5.3 0-9.8-3.6-11.4-8.4H5.8v5.2A20 20 0 0 0 24 44z"/><path fill="#FBBC05" d="M12.6 27.9a12 12 0 0 1 0-7.8v-5.2H5.8a20 20 0 0 0 0 18.2z"/><path fill="#EA4335" d="M24 11.7c3 0 5.7 1 7.8 3.1l5.8-5.8A19.3 19.3 0 0 0 24 4 20 20 0 0 0 5.8 14.9l6.8 5.2C14.2 15.3 18.7 11.7 24 11.7z"/></svg>
+          {pending ? "Connecting…" : "Continue with Google"}
+        </button>
+        {!auth && <p className="login-hint">Google sign-in is not configured for this build.</p>}
+        {message && <p role="alert">{message}</p>}
+        {!auth && <button className="secondary" onClick={() => setLogin(false)}>Back to workspace</button>}
+      </section>
+    </main>
+  );
+  return <><App onAccount={() => void account()} accountLabel={signedIn ? "Sign out" : "Sign in"} />{message && <div className="error account-error" role="alert">{message}</div>}</>;
+}
+createRoot(document.getElementById("root")!).render(<Entry />);
