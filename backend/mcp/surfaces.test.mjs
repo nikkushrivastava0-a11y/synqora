@@ -100,6 +100,21 @@ test(
           .current,
         false,
       );
+      const reviewedPlan = await b("read_record", { recordId: plan.resultId });
+      assert.equal(reviewedPlan.agentId, id(5));
+      assert.equal(reviewedPlan.body, "Plan: validate fullName");
+      assert.deepEqual(reviewedPlan.provenance, {
+        taskId: firstTask,
+        authorAgentId: id(4),
+        resultState: "accepted",
+        evidence: [{
+          recordId: requirement,
+          title: "Registration API",
+          revision: 1,
+          currentRevision: 2,
+          body: "Register using fullName",
+        }],
+      });
       const submit = (revision, body) =>
         b("submit_result", {
           operationId: op(),
