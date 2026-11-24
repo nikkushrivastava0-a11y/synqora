@@ -5,7 +5,9 @@
     "test": "node --test *.test.mjs",
     "typecheck": "tsc --noEmit",
     "build": "tsc --outDir dist",
-    "lint": "eslint server.ts *.test.mjs"
+    "lint": "eslint *.ts *.mjs",
+    "seed": "node local-api.mjs",
+    "smoke": "node smoke.mjs"
   },
   "type": "module",
   "dependencies": {
