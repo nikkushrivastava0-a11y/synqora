@@ -1,0 +1,91 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+> @synqora/mcp@1.0.0 lint
+> eslint *.ts *.mjs
+
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+> @synqora/mcp@1.0.0 typecheck
+> tsc --noEmit
+
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+> @synqora/mcp@1.0.0 build
+> tsc --outDir dist
+
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+> @synqora/mcp@1.0.0 test
+> node --test *.test.mjs
+
+✔ CampusFest impact, concurrent stale submit, human correction and scoped replay (3094.495167ms)
+✔ migration scopes revision reads to the signed-in workspace agent (3012.240504ms)
+✔ caller dies after committed result and before acknowledgement (3682.034608ms)
+✔ 13 HTTP contracts and eight MCP tools share local database state (4683.0545ms)
+✔ stdio discovery and scoped record lookup through a fixture RPC (568.33515ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5191.857931
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+> synqora-frontend@0.1.0 lint
+> eslint src test
+
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+> synqora-frontend@0.1.0 typecheck
+> tsc --noEmit
+
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+> synqora-frontend@0.1.0 test
+> node --import tsx --test test/*.test.ts
+
+✔ revision → impact → stale result → cited approval → idempotent replay (27.295941ms)
+✔ invalid response and denied access remain distinct from an empty workspace (4.700197ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 376.364111
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+> synqora-frontend@0.1.0 build
+> tsc --noEmit && vite build
+
+vite v6.4.6 building for production...
+transforming...
+✓ 1637 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                                                    0.47 kB │ gzip:   0.31 kB
+dist/assets/figtree-latin-ext-wght-normal-DCwSJGxG.woff2          10.28 kB
+dist/assets/eb-garamond-vietnamese-wght-normal-DvUmmjCN.woff2     10.95 kB
+dist/assets/eb-garamond-greek-ext-wght-normal-CW-BywWH.woff2      11.48 kB
+dist/assets/eb-garamond-greek-wght-normal-DCPER7xl.woff2          19.87 kB
+dist/assets/figtree-latin-wght-normal-D_ZTVpCC.woff2              20.16 kB
+dist/assets/eb-garamond-cyrillic-wght-normal-DBa2mnKT.woff2       26.02 kB
+dist/assets/eb-garamond-cyrillic-ext-wght-normal-Bt3rCdHq.woff2   33.95 kB
+dist/assets/eb-garamond-latin-wght-normal-CRpggXlh.woff2          44.34 kB
+dist/assets/eb-garamond-latin-ext-wght-normal-B6IpcvL2.woff2     113.93 kB
+dist/assets/index-BScY8SRe.css                                    10.75 kB │ gzip:   3.09 kB
+dist/assets/index-CWCZOePS.js                                    537.38 kB │ gzip: 150.26 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 3.42s
+
+Browser attempt 1: system Chromium could not open its singleton socket (EPERM).
+Browser attempt 2: Chromium headless shell, same frontend and database.
+PASS: real workspace, revision impact, conflict, approval, human trace, evidence and 1/1/1 replay.
+Reset verification through frontend proxy: tasks 5, impact 0, events 0.
