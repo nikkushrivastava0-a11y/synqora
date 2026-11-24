@@ -323,7 +323,8 @@ function App() {
           <strong>{s?.overview.name || "Workspace"}</strong>
           <span className="mode">{mockMode ? "MOCK MODE" : "LIVE API"}</span>
         </header>
-        <div className="canvas" key={view}>
+        <div className={"canvas" + (paused ? " still" : "")} key={view}>
+          <div className="ambient-scene" aria-hidden="true"><div className="ambient-grid" /><div className="ambient-orb"><Orbit paused={paused} /></div>{Array.from({length: 18}, (_, i) => <i key={i} style={{left: `${(i * 37 + 9) % 100}%`, top: `${(i * 23 + 11) % 100}%`, animationDelay: `${-i * 0.7}s`}} />)}</div>
           <section className={"hero" + (paused ? " still" : "")}>
             <Orbit paused={paused} />
             <div className="hero-copy">
@@ -352,8 +353,8 @@ function App() {
               className="motion-toggle"
               aria-label={
                 paused
-                  ? "Play sculpture animation"
-                  : "Pause sculpture animation"
+                  ? "Play workspace animation"
+                  : "Pause workspace animation"
               }
               aria-pressed={paused}
               onClick={() => setPaused(!paused)}
@@ -814,6 +815,10 @@ function App() {
               </Panel>
             </>
           )}
+          <footer className="mission-footer">
+            <div className="footer-art" aria-hidden="true"><Orbit paused={paused} /></div>
+            <div className="footer-copy"><div className="eyebrow"><span /> SYNQORA / WORKSPACE</div><h2>Intelligence in motion.</h2><p>Shared context. Traceable decisions. Coordinated execution.</p><small>{mockMode ? "Demo mode" : err ? "API connection issue" : s ? "Workspace loaded" : "Connecting to workspace"}</small></div>
+          </footer>
         </div>
       </main>
       {task && (
