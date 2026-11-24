@@ -1,0 +1,25 @@
+{
+  "name": "@synqora/mcp",
+  "version": "1.0.0",
+  "scripts": {
+    "test": "node --test *.test.mjs",
+    "typecheck": "tsc --noEmit",
+    "build": "tsc --outDir dist",
+    "lint": "eslint *.ts *.mjs",
+    "seed": "node local-api.mjs",
+    "smoke": "node smoke.mjs"
+  },
+  "type": "module",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.32.2",
+    "zod": "3.25.76"
+  },
+  "private": true,
+  "devDependencies": {
+    "@electric-sql/pglite": "0.6.0",
+    "@types/node": "24.19.2",
+    "eslint": "9.39.5",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.74.0"
+  }
+}
