@@ -8,7 +8,7 @@ function bridge(req: IncomingMessage, res: ServerResponse, next: () => void) {
   if (!file || !req.url?.startsWith("/api/")) return next();
   const route = req.url;
   const safe =
-    /^\/api\/(?:workspaces\/[\da-f-]+\/(?:overview|agents|tasks|records|events|benchmarks|conflicts|impact|approvals)|(?:records\/[\da-f-]+\/revisions|conflicts\/[\da-f-]+\/resolve|approvals\/[\da-f-]+\/decision))$/i;
+    /^\/api\/(?:workspaces\/[\da-f-]+\/(?:overview|agents|tasks|records|events|benchmarks|conflicts|impact|approvals|plan|review)|(?:records\/[\da-f-]+\/revisions|conflicts\/[\da-f-]+\/resolve|approvals\/[\da-f-]+\/decision))$/i;
   if (
     !safe.test(route) ||
     !["GET", "POST"].includes(req.method || "") ||
