@@ -1,10 +1,18 @@
+@import "@fontsource-variable/eb-garamond/index.css";
+@import "@fontsource-variable/figtree/index.css";
+
 :root {
-  font:
-    15px/1.5 Inter,
-    Arial,
-    sans-serif;
-  color: #192f3b;
-  background: #f6f8f9;
+  --cream: #ffffeb;
+  --green: #034f46;
+  --lavender: #f0d7ff;
+  --ink: #1a1a1a;
+  --line: #e8e2c6;
+  --muted: #b9b39e;
+  --secondary-text: #625f50;
+  --serif: "EB Garamond Variable", Georgia, serif;
+  font: 400 16px/1.5 "Figtree Variable", Arial, sans-serif;
+  color: var(--ink);
+  background: var(--cream);
   font-synthesis: none;
 }
 * {
@@ -30,7 +38,7 @@ button:focus-visible,
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {
-  outline: 3px solid #169f94;
+  outline: 3px solid var(--green);
   outline-offset: 2px;
 }
 .shell {
@@ -39,8 +47,9 @@ textarea:focus-visible {
   grid-template-columns: 230px minmax(0, 1fr);
 }
 .sidebar {
-  background: #172d39;
-  color: #cddcde;
+  background: var(--cream);
+  border-right: 1px solid var(--line);
+  color: var(--ink);
   display: flex;
   flex-direction: column;
   padding: 30px 16px;
@@ -67,7 +76,7 @@ header,
   font-size: 23px;
   font-weight: 800;
   letter-spacing: 1px;
-  color: white;
+  color: var(--ink);
   margin: 0 10px 35px;
 }
 .brand span {
@@ -75,12 +84,12 @@ header,
   height: 32px;
   display: grid;
   place-items: center;
-  background: #85d9c4;
+  background: var(--green);
   border-radius: 8px;
-  color: #123e39;
+  color: var(--cream);
 }
 .space {
-  border-block: 1px solid #344954;
+  border-block: 1px solid var(--line);
   padding: 20px 9px;
   margin-bottom: 20px;
 }
@@ -92,7 +101,7 @@ dialog small {
   letter-spacing: 1.6px;
 }
 .space small {
-  color: #9ab3b8;
+  color: var(--secondary-text);
 }
 .space strong {
   margin-top: 7px;
@@ -101,7 +110,7 @@ dialog small {
 .sidebar nav button {
   width: 100%;
   text-align: left;
-  color: #c6d4d8;
+  color: var(--ink);
   background: none;
   padding: 12px;
   border: 0;
@@ -110,48 +119,48 @@ dialog small {
   font-size: 14px;
 }
 .sidebar nav button.active {
-  background: #2c4c54;
-  color: #b4f0db;
+  background: var(--green);
+  color: var(--cream);
 }
 .sidefoot {
   margin-top: auto;
-  color: #a8c0c4;
+  color: var(--secondary-text);
   font-size: 12px;
-  border-top: 1px solid #344954;
+  border-top: 1px solid var(--line);
   padding: 18px 7px 0;
 }
 header {
   min-height: 62px;
-  background: #fff;
-  border-bottom: 1px solid #dce4e7;
+  background: var(--green);
+  border-bottom: 1px solid var(--line);
   padding: 0 4%;
   font-size: 13px;
-  color: #637780;
+  color: var(--cream);
 }
 header strong {
-  color: #28414a;
+  color: var(--cream);
 }
 .mode {
   margin-left: auto;
-  border: 1px solid #d5b769;
-  color: #735719;
-  background: #fff6d8;
+  border: 1px solid #ffffff50;
+  color: var(--cream);
+  background: #ffffeb1a;
   font: 700 10px/1.5 monospace;
   padding: 4px 8px;
   border-radius: 4px;
 }
 .canvas {
-  max-width: 1400px;
+  max-width: 1280px;
   margin: auto;
-  padding: 40px 4%;
+  padding: clamp(40px, 5vw, 72px) clamp(24px, 5vw, 72px);
 }
 .eyebrow {
-  color: #3f726c;
+  color: var(--green);
 }
 .eyebrow span {
   width: 20px;
   height: 2px;
-  background: #328779;
+  background: var(--green);
 }
 .heading,
 .row {
@@ -159,15 +168,15 @@ header strong {
   gap: 12px;
 }
 .heading h1 {
-  font-size: clamp(30px, 4vw, 48px);
+  font: 400 clamp(44px, 5.8vw, 96px)/1.12 var(--serif);
   line-height: 1.1;
-  letter-spacing: -2px;
+  letter-spacing: -0.03em;
   margin: 10px 0;
 }
 .subtitle,
 small,
 p {
-  color: #536974;
+  color: var(--secondary-text);
 }
 .subtitle {
   margin: 0 0 28px;
@@ -177,15 +186,15 @@ button,
   border: 1px solid transparent;
   border-radius: 6px;
   padding: 8px 14px;
-  background: #126b60;
-  color: white;
+  background: var(--lavender);
+  color: var(--ink);
   font-weight: 600;
 }
 .secondary,
 select {
-  background: white;
-  border: 1px solid #cdd9db;
-  color: #2b4750;
+  background: var(--cream);
+  border: 1px solid var(--muted);
+  color: var(--ink);
 }
 .secondary {
   display: inline-flex;
@@ -201,9 +210,9 @@ select {
 .stat,
 .panel,
 dialog {
-  background: white;
-  border: 1px solid #d7e1e3;
-  border-radius: 10px;
+  background: var(--cream);
+  border: 1px solid var(--line);
+  border-radius: 40px;
 }
 .stat {
   padding: 17px 20px;
@@ -214,24 +223,23 @@ dialog {
 .stat svg {
   grid-column: 2;
   grid-row: 1;
-  color: #367669;
+  color: var(--green);
 }
 .stat small {
   grid-column: 1;
   grid-row: 1;
 }
 .stat strong {
-  font-size: 30px;
-  line-height: 1.15;
+  font: 400 52px/1 var(--serif);
 }
 .panel {
-  padding: 20px 23px;
+  padding: clamp(24px, 3vw, 48px) clamp(20px, 3vw, 40px);
   margin-bottom: 18px;
 }
 .panel h2,
 dialog h2 {
-  font-size: 20px;
-  letter-spacing: -0.6px;
+  font: 400 clamp(32px, 3vw, 44px)/1.2 var(--serif);
+  letter-spacing: -0.03em;
   margin: 0 0 12px;
 }
 .row h2 {
@@ -252,18 +260,18 @@ dialog h2 {
 }
 .thead {
   padding: 9px 10px;
-  background: #f1f5f5;
+  background: #f8f6e7;
   font-size: 11px;
-  color: #556b73;
+  color: var(--secondary-text);
   letter-spacing: 0.5px;
 }
 .taskrow {
   width: 100%;
   border: 0;
-  border-bottom: 1px solid #e3eaeb;
+  border-bottom: 1px solid var(--line);
   border-radius: 0;
-  background: white;
-  color: #314955;
+  background: var(--cream);
+  color: var(--ink);
   padding: 17px 10px;
   font-size: 13px;
   font-weight: 400;
@@ -274,28 +282,28 @@ dialog h2 {
   gap: 8px;
 }
 .taskrow:hover {
-  background: #f7fbfa;
+  background: #f7f4df;
 }
 .tag {
   justify-self: start;
   font-size: 11px;
   font-weight: 700;
-  border-radius: 5px;
-  padding: 3px 8px;
-  background: #edf0f3;
+  border-radius: 999px;
+  padding: 5px 12px;
+  background: #eeeadd;
 }
 .tag.completed,
 .notice {
-  background: #e3f4eb;
-  color: #276447;
+  background: #e4efe4;
+  color: var(--green);
 }
 .tag.needs_review {
   background: #fff0d7;
   color: #875817;
 }
 .tag.claimed {
-  background: #e8f0ff;
-  color: #365688;
+  background: #f4e8fa;
+  color: #5f376b;
 }
 .cites {
   display: flex;
@@ -305,8 +313,8 @@ dialog h2 {
 .cites span {
   font-size: 12px;
   gap: 6px;
-  background: #eef5f3;
-  border: 1px solid #d8e6e2;
+  background: var(--cream);
+  border: 1px solid var(--line);
   border-radius: 5px;
   padding: 3px 7px;
 }
@@ -317,11 +325,11 @@ dialog h2 {
 }
 .compare > div {
   padding: 15px;
-  background: #f5f7f8;
+  background: #f5efdf;
   border-radius: 6px;
 }
 .compare > div + div {
-  background: #eef6f2;
+  background: #eaf1e5;
 }
 .panel p,
 dialog p {
@@ -334,7 +342,7 @@ dialog h3 {
 }
 .panel article {
   padding: 15px 0;
-  border-top: 1px solid #dfe8e8;
+  border-top: 1px solid var(--line);
 }
 form {
   display: grid;
@@ -355,7 +363,7 @@ input,
 textarea,
 select {
   padding: 8px 10px;
-  border: 1px solid #cbd9da;
+  border: 1px solid var(--muted);
   border-radius: 5px;
   max-width: 100%;
 }
@@ -374,13 +382,13 @@ textarea {
   margin: 10px 0;
 }
 .error {
-  background: #ffebdf;
-  color: #8b351b;
+  background: #fff1f2;
+  color: #b23a48;
 }
 .link {
   background: none;
   border: none;
-  color: #116d60;
+  color: var(--green);
   padding: 6px 0;
 }
 .mobile {
@@ -397,7 +405,7 @@ dialog {
   max-width: min(460px, 95vw);
   width: 460px;
   padding: 22px;
-  box-shadow: 0 12px 60px #16343d38;
+  border: 2px solid var(--green);
   max-height: 85vh;
   overflow: auto;
 }
@@ -424,7 +432,7 @@ svg {
     display: inline-flex;
     padding: 4px;
     background: none;
-    color: #193b43;
+    color: var(--cream);
   }
   .stats {
     grid-template-columns: repeat(2, 1fr);
@@ -466,7 +474,7 @@ svg {
     gap: 8px;
   }
   .heading h1 {
-    font-size: 30px;
+    font-size: 44px;
   }
   .sidefoot {
     display: none;
@@ -486,12 +494,12 @@ svg {
 }
 .proof strong {
   font-size: 28px;
-  color: #166556;
+  color: var(--green);
 }
 .pathnode {
-  background: #edf5f3;
-  color: #235d56;
-  border: 1px solid #c8dfda;
+  background: var(--cream);
+  color: var(--green);
+  border: 1px solid var(--line);
   padding: 3px 8px;
   font-size: 13px;
 }
@@ -501,3 +509,24 @@ svg {
   flex-wrap: wrap;
   gap: 5px;
 }
+
+.brand { color: var(--green); font: 500 28px/1 var(--serif); letter-spacing: -.04em; }
+.space small, .eyebrow, dialog small { font-size: 12px; font-weight: 500; letter-spacing: .12em; }
+.sidebar nav button { font-size: 16px; font-weight: 500; }
+.sidebar nav button:not(.active):hover { background: #f2efd8; }
+.mode { border-radius: 999px; font: 600 12px/16px "Figtree Variable", sans-serif; letter-spacing: .08em; padding: 6px 12px; }
+.subtitle { font-size: clamp(16px, 1.4vw, 20px); max-width: 65ch; margin-bottom: 40px; }
+.stats { gap: 0; border-block: 1px solid var(--line); }
+.stat { border: 0; border-radius: 0; padding: 24px 16px; }
+.stat + .stat { border-left: 1px solid var(--line); }
+.stat small { font-size: 14px; }
+.panel button:not(.taskrow,.link,.pathnode,.secondary), form > button { min-height: 52px; padding: 12px 24px; border: 1px solid var(--ink); border-radius: 8px; }
+.panel button:not(.taskrow,.link,.pathnode,.secondary):enabled:hover, form > button:enabled:hover { background: #e7bff9; }
+input:not([type="checkbox"]), textarea, select { background: #fff; color: var(--ink); padding: 12px 16px; min-width: 0; }
+input[type="checkbox"] { accent-color: var(--green); }
+.taskrow { font-size: 14px; }
+.cites span { border-radius: 999px; }
+dialog { background: var(--cream); }
+.proof strong { font: 400 44px/1.2 var(--serif); }
+@media (max-width:850px) { .stat:nth-child(3) { border-left: 0; } .sidebar.show { border-bottom: 1px solid var(--line); } }
+@media (max-width:580px) { .panel { border-radius: 20px; } .heading, .row { flex-wrap: wrap; } .stat { padding: 16px 12px; } .tag { padding: 4px 7px; } header { flex-wrap: wrap; } }
