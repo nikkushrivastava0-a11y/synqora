@@ -100,15 +100,47 @@ test(
           .current,
         false,
       );
-      const submit = (revision, body) =>
+      const reviewedPlan = await b("read_record", { recordId: plan.resultId });
+      assert.equal(reviewedPlan.agentId, id(5));
+      assert.equal(reviewedPlan.body, "Plan: validate fullName");
+      assert.deepEqual(reviewedPlan.provenance, {
+        taskId: firstTask,
+        authorAgentId: id(4),
+        resultState: "accepted",
+        evidence: [{
+          recordId: requirement,
+          title: "Registration API",
+          revision: 1,
+          currentRevision: 2,
+          body: "Register using fullName",
+        }],
+      });
+      const submit = (revision, body, reviewedRevision = 1) =>
         b("submit_result", {
           operationId: op(),
           taskId,
           body,
           sources: [{ recordId: requirement, revision }],
+          reviews: { recordId: plan.resultId, revision: reviewedRevision },
         });
+      await assert.rejects(submit(2, "Invalid plan citation", 99), /Reviewed artifact revision unavailable/);
+      assert.deepEqual((await b("get_task_context", { taskId })).results, []);
       const stale = await submit(1, "Review using fullName");
       const fix = await submit(2, "Reviewed displayName");
+      await http("records/" + plan.resultId + "/revisions", "reviseRecord", {
+        expectedRevision: 1, body: "Plan: validate displayName",
+        reason: "Update plan after review was written", operationId: op(),
+      });
+      const savedReview = await a("read_record", { recordId: fix.resultId });
+      assert.equal(savedReview.provenance.authorAgentId, id(5));
+      assert.deepEqual(savedReview.provenance.reviews, {
+        recordId: plan.resultId, revision: 1, body: "Plan: validate fullName", authorAgentId: id(4),
+      });
+      assert.deepEqual(fix.reviews, { recordId: plan.resultId, revision: 1 });
+      const timeline = await http(base + "events", "events");
+      assert.ok(timeline.some(event => event.action === "read_record" &&
+        event.agentId === id(5) && event.sources[0]?.recordId === plan.resultId &&
+        event.sources[0]?.revision === 1));
       const approval = await http(
         "conflicts/" + stale.conflictId + "/resolve",
         "resolveConflict",
