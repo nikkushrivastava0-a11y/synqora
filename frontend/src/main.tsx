@@ -30,6 +30,7 @@ import {
 import { ApiError, type Workspace, type Payload, type WriteKey } from "./api";
 import { auth, connect, mockMode } from "./runtime";
 import "./style.css";
+import { LiveModels } from "./LiveModels";
 import { campusFest } from "./fixture";
 
 const views = [
@@ -392,6 +393,7 @@ function App({ onAccount, accountLabel }: { onAccount: () => void; accountLabel:
           {denied && <button className="secondary" onClick={onAccount}>Sign in to access workspace</button>}
           {!s && !err && <p role="status">Loading workspace…</p>}
           {!s && err && previewAllowed && <DatasetPreview view={view} />}
+          {s && view === "Task board" && !mockMode && <LiveModels workspace={s} refresh={refresh} />}
           {s && view === "Task board" && (
             <>
               <div className="stats">
