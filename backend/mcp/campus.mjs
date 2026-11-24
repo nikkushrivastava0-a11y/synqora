@@ -351,7 +351,7 @@ export async function operate(db, user, op, target, input = {}) {
         await run("insert into agent_results(id,task,actor,body,sources,state) values($1,$2,$3,$4,$5,'accepted')",[planId,planTaskId,id(4),body,JSON.stringify(evidence)]);
         await run("insert into records values($1,$2,$3)",[planId,w,"AI project planning result"]);
         await run("insert into record_revisions values($1,1,$2)",[planId,body]);
-        out={planId,revision:1,provider:input.provider,model:input.model,createdAt:input.createdAt,reviewTaskId,requirements,tasks,rawResponse:input.rawResponse};
+        out={planId,prompt:input.prompt,revision:1,provider:input.provider,model:input.model,createdAt:input.createdAt,reviewTaskId,requirements,tasks,rawResponse:input.rawResponse};
         break;
       }
       case "createRecord": {
@@ -617,6 +617,7 @@ export async function operate(db, user, op, target, input = {}) {
           oid,
           JSON.stringify(
             out.sources ??
+              (out.planId ? [{recordId:out.planId,revision:1}] : undefined) ??
               out.used ??
               (out.revision
                 ? [{ recordId: out.id, revision: out.revision }]
