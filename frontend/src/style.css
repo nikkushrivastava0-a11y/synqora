@@ -831,3 +831,30 @@ main { min-width:0; background:radial-gradient(ellipse at 90% 85%,#30230e,transp
 @keyframes star-drift { from { transform:translate3d(0,0,0); opacity:.25; } to { transform:translate3d(14px,-38px,0); opacity:.9; } }
 .canvas.still *,.canvas.still *::before,.canvas.still *::after { animation-play-state:paused!important; }
 @media(max-width:580px) { .ambient-orb { width:85%; opacity:.16; } .footer-art { width:65%; opacity:.25; right:-15%; } .footer-copy { max-width:95%; } .mission-footer { min-height:190px; padding:22px; } }
+
+/* One continuous operations surface, including the footer. */
+.canvas { display:flex; flex-direction:column; min-height:calc(100vh - 62px); }
+.hero { flex-shrink:0; }
+.operations-scene { position:relative; isolation:isolate; overflow:hidden; flex:1; min-height:440px; display:flex; flex-direction:column; padding:clamp(16px,2.5vw,32px); border:1px solid #383727; border-radius:18px; background:#0a0c14; }
+.scene-art { position:absolute; inset:0; z-index:-1; overflow:hidden; pointer-events:none; background:radial-gradient(ellipse at 76% 55%,#8f681b38,transparent 45%),radial-gradient(ellipse at 20% 90%,#55411335,transparent 55%); }
+.terrain { position:absolute; left:-60%; right:-60%; top:35%; bottom:-70%; background-image:linear-gradient(#e7b73748 1px,transparent 1px),linear-gradient(90deg,#e7b73748 1px,transparent 1px); background-size:55px 55px; transform:perspective(460px) rotateX(63deg); transform-origin:center 25%; mask-image:linear-gradient(transparent,#000 30%,#000 75%,transparent); animation:grid-travel 7s linear infinite; }
+.planet { position:absolute; right:17%; top:45%; width:220px; height:220px; margin-top:-110px; transform-style:preserve-3d; animation:planet-turn 23s linear infinite; }
+.planet span,.planet-core { position:absolute; inset:0; border-radius:50%; border:1px solid #ffda6377; box-shadow:0 0 12px #d6a62b22; }
+.planet-core { background:radial-gradient(circle at 35% 35%,#ffd70016,transparent 70%); border:1px solid #ffd70055; }
+.orbital-trails { position:absolute; top:45%; right:17%; width:340px; height:340px; margin:-170px -60px 0 0; perspective:600px; transform-style:preserve-3d; }
+.orbital-trails i { position:absolute; inset:0; border:1px solid #ffd36c55; border-top:3px solid #ffe49c; border-radius:50%; box-shadow:0 0 12px #ffcd4233; animation:trail-spin 12s linear infinite; }
+.orbital-trails i:nth-child(2) { inset:22px; animation:trail-cross 16s linear infinite reverse; border-top-color:#ffb33e; }
+.orbital-trails i:nth-child(3) { inset:-18px; animation:trail-cross 20s linear infinite; opacity:.45; }
+.scene-star { position:absolute; width:3px; height:3px; border-radius:50%; background:#ffe5a4; box-shadow:0 0 9px 2px #ffc72a77; animation:star-drift 7s ease-in-out infinite alternate; }
+.light-beam { position:absolute; inset:-40%; background:conic-gradient(from 0deg,transparent 0 40%,#ffd7000d 48%,transparent 55%); animation:beam-turn 24s linear infinite; }
+.operations-scene .panel,.operations-scene .stat { background:linear-gradient(135deg,#141622ed,#10121ad9); }
+.operations-scene .error { margin:0 0 20px; }
+.operations-scene .mission-footer { min-height:0; margin-top:auto; padding:54px 0 8px; background:none; border:0; border-radius:0; overflow:visible; }
+.operations-scene .mission-footer::before { content:none; }
+.operations-scene .footer-copy { max-width:65%; }
+@keyframes planet-turn { from { transform:rotateX(18deg) rotateY(0deg) rotateZ(-12deg); } to { transform:rotateX(18deg) rotateY(360deg) rotateZ(-12deg); } }
+@keyframes trail-spin { from { transform:rotateX(64deg) rotateY(-18deg) rotateZ(0deg); } to { transform:rotateX(64deg) rotateY(-18deg) rotateZ(360deg); } }
+@keyframes trail-cross { from { transform:rotateX(-48deg) rotateY(36deg) rotateZ(0deg); } to { transform:rotateX(-48deg) rotateY(36deg) rotateZ(360deg); } }
+@keyframes beam-turn { to { transform:rotate(360deg); } }
+@media(max-width:580px) { .operations-scene { min-height:420px; } .planet { right:-30px; opacity:.55; } .orbital-trails { right:-30px; opacity:.45; } .operations-scene .footer-copy { max-width:100%; } }
+@media(prefers-reduced-motion:reduce) { .planet { transform:rotateX(18deg) rotateY(35deg); } .orbital-trails i { transform:rotateX(64deg); } .orbital-trails i:nth-child(2) { transform:rotateX(-48deg) rotateY(36deg); } }
