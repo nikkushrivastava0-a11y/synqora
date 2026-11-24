@@ -1,8 +1,9 @@
 // Build an independent public judge workspace from the shared SQL engine and UI.
+import {fileURLToPath} from 'node:url';
 import {readFile,writeFile,mkdir,copyFile} from 'node:fs/promises';
 import {spawnSync} from 'node:child_process';
 import {resolve} from 'node:path';
-process.chdir(new URL('../frontend/',import.meta.url));
+process.chdir(fileURLToPath(new URL('../frontend/',import.meta.url)));
 const generated=resolve('src/hosted');
 await mkdir(generated,{recursive:true});
 let engine=await readFile('../backend/mcp/campus.mjs','utf8');
