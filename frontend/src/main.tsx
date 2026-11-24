@@ -326,7 +326,6 @@ function App({ onAccount, accountLabel }: { onAccount: () => void; accountLabel:
         <div className={"canvas" + (paused ? " still" : "")} key={view}>
 
           <section className={"hero" + (paused ? " still" : "")}>
-            <Orbit paused={paused} />
             <div className="hero-copy">
               <div className="heading">
                 <h1>{view}</h1>
@@ -362,8 +361,6 @@ function App({ onAccount, accountLabel }: { onAccount: () => void; accountLabel:
           <div className="operations-scene">
             <div className="scene-art" aria-hidden="true">
               <div className="terrain" />
-              <div className="planet"><div className="planet-core" />{Array.from({ length: 7 }, (_, i) => <span className="longitude" key={i} style={{ transform: `rotateY(${i * 180 / 7}deg)` }} />)}{Array.from({ length: 5 }, (_, i) => <span className="latitude" key={i} style={{ transform: `translateY(${(i - 2) * 36}px) rotateX(90deg) scale(${Math.sqrt(1 - ((i - 2) * 36 / 110) ** 2)})` }} />)}</div>
-              <div className="orbital-trails"><i /><i /><i /></div>
               <div className="light-beam" />
               {Array.from({ length: 32 }, (_, i) => <i className="scene-star" key={i} style={{ left: `${(i * 37 + 9) % 100}%`, top: `${(i * 23 + 11) % 100}%`, animationDelay: `${-i * .37}s` }} />)}
             </div>
