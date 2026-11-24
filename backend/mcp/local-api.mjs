@@ -23,9 +23,14 @@ try {
     mode: 0o600,
   });
 }
+const roles = ["human", "planner", "reviewer"];
+if (!sessions || roles.some(role => typeof sessions[role] !== "string" || !/^[0-9a-f]{64}$/.test(sessions[role])) ||
+    new Set(roles.map(role => sessions[role])).size !== roles.length) {
+  throw Error("Invalid local sessions file. Demo state was preserved.");
+}
 const db = await openCampus(join(dir, "postgres"));
 const identities = new Map(
-  ["human", "planner", "reviewer"].map((name, i) => [
+  roles.map((name, i) => [
     sessions[name],
     id(3 + i),
   ]),
@@ -70,6 +75,7 @@ const server = createServer(async (req, res) => {
         throw error(400, "Invalid JSON");
       }
     }
+    if (!body || typeof body !== "object" || Array.isArray(body)) throw error(400, "Expected a JSON object");
     let op,
       scope = target;
     if (

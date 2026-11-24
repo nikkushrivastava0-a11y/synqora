@@ -71,9 +71,17 @@ try{
   await waitFor(web,async()=> (await fetch(address+"/api/workspaces/"+workspace+"/overview")).ok);
   console.log("CampusFest ready at "+address+". Keep this window open.");
   if(process.platform==="win32")spawnSync("cmd.exe",["/d","/c","start","",address]);
-  while(children.has(api)&&children.has(web)){
+  let restarted = false;
+  while(children.has(web)){
+    if (!children.has(api)) {
+      if (restarted) throw Error("Backend stopped twice. State preserved; inspect the backend error before restarting.");
+      restarted = true;
+      console.log("Backend stopped. Reopening the existing CampusFest database.");
+      api = await startBackend();
+      console.log("Backend recovered. Refresh the browser or retry the same operation.");
+    }
     await sleep(400);
-    if(await requested()){
+    if(await requested() && children.has(api)){
       const exited=once(api,"exit");api.kill();await exited;
       await rotate();api=await startBackend();console.log("Clean CampusFest seed ready. Refresh the browser.");
     }
