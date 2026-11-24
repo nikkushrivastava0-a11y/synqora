@@ -108,10 +108,10 @@ export function Orbit({ paused }: { paused: boolean }) {
           i ? ctx!.lineTo(x, y) : ctx!.moveTo(x, y),
         );
         ctx!.closePath();
-        ctx!.fillStyle = "hsl(44 86% " + (7 + light * 58) + "%)";
+        ctx!.fillStyle = "hsl(157 32% " + (7 + light * 58) + "%)";
         ctx!.fill();
         ctx!.lineWidth = 0.55;
-        ctx!.strokeStyle = "rgba(255,223,131," + (0.12 + light * 0.54) + ")";
+        ctx!.strokeStyle = "rgba(255,255,235," + (0.12 + light * 0.54) + ")";
         ctx!.stroke();
       }
       if (active) frame = requestAnimationFrame(draw);
