@@ -167,10 +167,32 @@ export async function operate(db, user, op, target, input = {}) {
     }
     let out;
     switch (op) {
-      case "read_record":
+      case "read_record": {
         agent();
-        out = { ...(await getRecord(input.recordId)), agentId: user };
+        const record = await getRecord(input.recordId);
+        out = { ...record, agentId: user };
+        const result = await first(
+          `select a.task as "taskId", a.actor as "authorAgentId", a.state, a.sources
+           from agent_results a join tasks t on t.id=a.task
+           where a.id=$1 and t.workspace=$2`,
+          [record.id, w],
+        );
+        if (result) {
+          const evidence = await query(
+            `select r.id as "recordId", r.title, v.revision, v.body,
+                    (select max(latest.revision) from record_revisions latest
+                     where latest.record=r.id) as "currentRevision"
+             from jsonb_to_recordset($1::jsonb) as s("recordId" uuid, revision int)
+             join records r on r.id=s."recordId" and r.workspace=$2
+             join record_revisions v on v.record=r.id and v.revision=s.revision
+             order by r.id`,
+            [JSON.stringify(result.sources), w],
+          );
+          out.provenance = { taskId: result.taskId, authorAgentId: result.authorAgentId,
+            resultState: result.state, evidence };
+        }
         break;
+      }
       case "check_revision": {
         const r = await getRecord(input.recordId);
         out = { revision: r.revision, current: r.revision === input.revision };
