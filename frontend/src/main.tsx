@@ -1,3 +1,4 @@
+import { Orbit } from "./Orbit";
 import { createRoot } from "react-dom/client";
 import {
   useEffect,
@@ -58,6 +59,7 @@ function Panel({ title, children }: { title: string; children: ReactNode }) {
   );
 }
 function App() {
+  const [paused, setPaused] = useState(false);
   const [view, setView] = useState<View>("Task board"),
     [menu, setMenu] = useState(false),
     [s, setData] = useState<Workspace>(),
@@ -321,27 +323,44 @@ function App() {
           <strong>{s?.overview.name || "Workspace"}</strong>
           <span className="mode">{mockMode ? "MOCK MODE" : "LIVE API"}</span>
         </header>
-        <div className="canvas">
-          <div className="eyebrow">
-            <span /> TEAM OPERATIONS
-          </div>
-          <div className="heading">
-            <h1>{view}</h1>
-            <button className="secondary" disabled={busy} onClick={refresh}>
-              <RefreshCw size={15} /> Refresh
+        <div className="canvas" key={view}>
+          <section className={"hero" + (paused ? " still" : "")}>
+            <Orbit paused={paused} />
+            <div className="hero-copy">
+              <div className="eyebrow">
+                <span /> TEAM OPERATIONS
+              </div>
+              <div className="heading">
+                <h1>{view}</h1>
+                <button className="secondary" disabled={busy} onClick={refresh}>
+                  <RefreshCw size={15} /> Refresh
+                </button>
+              </div>
+              <p className="subtitle">
+                {
+                  [
+                    "Track ownership, task status and the sources behind each result.",
+                    "Review the dependency paths affected by a requirement revision.",
+                    "Compare source revisions and review proposed corrections.",
+                    "Inspect the actors, operations and source revisions behind each step.",
+                    "Inspect measured outcomes and audit evidence after replaying a decision.",
+                  ][views.indexOf(view)]
+                }
+              </p>
+            </div>
+            <button
+              className="motion-toggle"
+              aria-label={
+                paused
+                  ? "Play sculpture animation"
+                  : "Pause sculpture animation"
+              }
+              aria-pressed={paused}
+              onClick={() => setPaused(!paused)}
+            >
+              {paused ? "▶" : "Ⅱ"}
             </button>
-          </div>
-          <p className="subtitle">
-            {
-              [
-                "Track ownership, task status and the sources behind each result.",
-                "Review the dependency paths affected by a requirement revision.",
-                "Compare source revisions and review proposed corrections.",
-                "Inspect the actors, operations and source revisions behind each step.",
-                "Inspect measured outcomes and audit evidence after replaying a decision.",
-              ][views.indexOf(view)]
-            }
-          </p>
+          </section>
           {err && (
             <div className="error" role="alert">
               {err}
