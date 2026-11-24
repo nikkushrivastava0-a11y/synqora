@@ -27,6 +27,10 @@ export const inputs = {
     operationId: uuid,
     body: z.string().trim().min(1),
     sources,
+    reviews: z.object({
+      recordId: uuid,
+      revision: z.number().int().positive(),
+    }).strict().optional().describe("Exact submitted artifact revision being reviewed"),
   },
 };
 const fail = (status, message) => {
@@ -83,6 +87,12 @@ export async function openCampus(path) {
       ]);
     });
   }
+  await db.exec(`create table if not exists result_reviews (
+    review uuid primary key references agent_results(id),
+    artifact uuid not null references agent_results(id),
+    revision int not null,
+    foreign key (artifact,revision) references record_revisions(record,revision)
+  )`);
   return db;
 }
 const reads = new Set([
@@ -190,6 +200,17 @@ export async function operate(db, user, op, target, input = {}) {
           );
           out.provenance = { taskId: result.taskId, authorAgentId: result.authorAgentId,
             resultState: result.state, evidence };
+          const reviewed = await first(
+            `select link.artifact as "recordId", link.revision, rev.body,
+                    plan.actor as "authorAgentId"
+             from result_reviews link
+             join agent_results plan on plan.id=link.artifact
+             join records r on r.id=plan.id and r.workspace=$2
+             join record_revisions rev on rev.record=r.id and rev.revision=link.revision
+             where link.review=$1`,
+            [record.id, w],
+          );
+          if (reviewed) out.provenance.reviews = reviewed;
         }
         break;
       }
@@ -418,6 +439,17 @@ export async function operate(db, user, op, target, input = {}) {
           "insert into agent_results(id,task,actor,body,sources,state) values($1,$2,$3,$4,$5,$6)",
           [resultId, t.id, user, input.body, JSON.stringify(used), state],
         );
+        if (input.reviews) {
+          const linked = await first(
+            `insert into result_reviews(review,artifact,revision)
+             select $1, a.id, v.revision from agent_results a
+             join records r on r.id=a.id and r.workspace=$2
+             join record_revisions v on v.record=r.id and v.revision=$4
+             where a.id=$3 returning review`,
+            [resultId, w, input.reviews.recordId, input.reviews.revision],
+          );
+          if (!linked) fail(400, "Reviewed artifact revision unavailable");
+        }
         // Every submitted artifact has a stable record ID for fresh-session handoff.
         await run("insert into records values($1,$2,$3)", [
           resultId,
