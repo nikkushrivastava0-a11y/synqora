@@ -1,3 +1,4 @@
+import { waitForApiPort } from "./test-api-port.mjs";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
@@ -20,13 +21,7 @@ test(
     });
     let proxy, caller;
     try {
-      const [ready] = await Promise.race([
-        once(api.stdout, "data"),
-        once(api, "exit").then(() => {
-          throw Error("API startup failed");
-        }),
-      ]);
-      const port = String(ready).match(/port (\d+)/)[1];
+      const port = await waitForApiPort(api);
       const sessions = JSON.parse(
         await readFile(join(dir, "sessions.json"), "utf8"),
       );

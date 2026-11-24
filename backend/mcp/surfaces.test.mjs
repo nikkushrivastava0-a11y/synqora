@@ -1,3 +1,4 @@
+import { waitForApiPort } from "./test-api-port.mjs";
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { spawn } from "node:child_process";
@@ -22,8 +23,7 @@ test(
     });
     const clients = [];
     try {
-      const [msg] = await once(api.stdout, "data");
-      const port = String(msg).match(/port (\d+)/)[1];
+      const port = await waitForApiPort(api);
       const file = join(dir, "sessions.json");
       const sessions = JSON.parse(await readFile(file, "utf8"));
       const http = async (path, key, body) => {
@@ -141,9 +141,11 @@ test(
         await http(base + key, key);
     } finally {
       for (const c of clients) await c.close();
-      const exited = once(api, "exit");
-      api.kill();
-      await exited;
+      if (api.exitCode === null && api.signalCode === null) {
+        const exited = once(api, "exit");
+        api.kill();
+        await exited;
+      }
       await rm(dir, { recursive: true, force: true });
     }
   },
