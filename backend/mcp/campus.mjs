@@ -36,6 +36,10 @@ const rows = async (db, sql, args = []) => (await db.query(sql, args)).rows;
 const one = async (db, sql, args) => (await rows(db, sql, args))[0];
 export async function openCampus(path) {
   const db = new PGlite(path);
+  await initializeCampus(db);
+  return db;
+}
+export async function initializeCampus(db) {
   if (!(await one(db, "select to_regclass('campus_users') as name")).name) {
     await db.transaction(async (tx) => {
       await tx.exec(
