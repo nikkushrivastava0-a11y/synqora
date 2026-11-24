@@ -806,3 +806,28 @@ form button:enabled:hover {
     gap: 8px;
   }
 }
+
+/* Cinematic 3D workspace */
+main { min-width:0; background:radial-gradient(ellipse at 90% 85%,#30230e,transparent 55%),#090b12; }
+.canvas { position:relative; isolation:isolate; min-height:calc(100vh - 62px); display:flex; flex-direction:column; }
+.ambient-scene { position:absolute; inset:0; z-index:-1; overflow:hidden; pointer-events:none; background:radial-gradient(ellipse at 80% 40%,#a57b152a,transparent 60%); }
+.ambient-grid { position:absolute; inset:18% -35% -25%; background-image:linear-gradient(#d6aa3538 1px,transparent 1px),linear-gradient(90deg,#d6aa3538 1px,transparent 1px); background-size:56px 56px; transform:perspective(650px) rotateX(52deg); transform-origin:center 75%; mask-image:linear-gradient(transparent,#000 48%,#000 78%,transparent); animation:grid-travel 9s linear infinite; }
+.ambient-orb { position:absolute; top:25%; right:-5%; width:min(65%,720px); height:420px; opacity:.32; }
+.ambient-orb .orbit,.footer-art .orbit { inset:0; width:100%; height:100%; opacity:1; z-index:0; }
+.ambient-scene i { position:absolute; width:3px; height:3px; border-radius:50%; background:#ffe29a; box-shadow:0 0 12px 3px #e9b82d66; animation:star-drift 7s ease-in-out infinite alternate; }
+.panel,.stat { background:linear-gradient(135deg,#191a20eb,#0b1019d9); border-color:#b79b4e45; box-shadow:inset 0 1px #fff1b510,0 12px 35px #0004; transition:transform .25s,border-color .25s,box-shadow .25s; }
+.stat:hover,.panel:hover { border-color:#c8a74988; box-shadow:0 12px 40px #b98a1527; }
+.stat:hover { transform:translateY(-4px); }
+.taskrow:hover { background:linear-gradient(90deg,#c99c2220,transparent); }
+.error { border:1px solid #b54e5e88; border-radius:14px; background:linear-gradient(120deg,#3c1725e8,#23141ddd); padding:18px; box-shadow:0 0 25px #c8474619; }
+.mission-footer { position:relative; isolation:isolate; overflow:hidden; min-height:220px; margin-top:auto; padding:36px clamp(20px,4vw,48px); border:1px solid #a88a3b55; border-radius:20px; background:radial-gradient(ellipse at 85% 75%,#65501666,transparent 55%),linear-gradient(125deg,#11131bee,#0b0d14bb); }
+.canvas > .mission-footer { margin-top:auto; }
+.footer-art { position:absolute; z-index:-1; right:0; top:0; width:48%; height:100%; opacity:.85; }
+.mission-footer::before { content:""; position:absolute; z-index:-2; inset:0; background:repeating-linear-gradient(90deg,transparent 0 39px,#e5bd3920 40px),repeating-linear-gradient(0deg,transparent 0 39px,#e5bd3918 40px); mask-image:linear-gradient(90deg,transparent,black); }
+.footer-copy { max-width:60%; }
+.footer-copy h2 { font-size:clamp(25px,3.7vw,46px); line-height:1.05; letter-spacing:-.045em; margin:16px 0 8px; }
+.footer-copy small { color:#e6c66a; }
+@keyframes grid-travel { to { background-position:0 56px; } }
+@keyframes star-drift { from { transform:translate3d(0,0,0); opacity:.25; } to { transform:translate3d(14px,-38px,0); opacity:.9; } }
+.canvas.still *,.canvas.still *::before,.canvas.still *::after { animation-play-state:paused!important; }
+@media(max-width:580px) { .ambient-orb { width:85%; opacity:.16; } .footer-art { width:65%; opacity:.25; right:-15%; } .footer-copy { max-width:95%; } .mission-footer { min-height:190px; padding:22px; } }
