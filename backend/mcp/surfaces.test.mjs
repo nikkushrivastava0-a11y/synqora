@@ -115,15 +115,27 @@ test(
           body: "Register using fullName",
         }],
       });
-      const submit = (revision, body) =>
+      const submit = (revision, body, reviewedRevision = 1) =>
         b("submit_result", {
           operationId: op(),
           taskId,
           body,
           sources: [{ recordId: requirement, revision }],
+          reviews: { recordId: plan.resultId, revision: reviewedRevision },
         });
+      await assert.rejects(submit(2, "Invalid plan citation", 99), /Reviewed artifact revision unavailable/);
+      assert.deepEqual((await b("get_task_context", { taskId })).results, []);
       const stale = await submit(1, "Review using fullName");
       const fix = await submit(2, "Reviewed displayName");
+      await http("records/" + plan.resultId + "/revisions", "reviseRecord", {
+        expectedRevision: 1, body: "Plan: validate displayName",
+        reason: "Update plan after review was written", operationId: op(),
+      });
+      const savedReview = await a("read_record", { recordId: fix.resultId });
+      assert.equal(savedReview.provenance.authorAgentId, id(5));
+      assert.deepEqual(savedReview.provenance.reviews, {
+        recordId: plan.resultId, revision: 1, body: "Plan: validate fullName", authorAgentId: id(4),
+      });
       const approval = await http(
         "conflicts/" + stale.conflictId + "/resolve",
         "resolveConflict",
