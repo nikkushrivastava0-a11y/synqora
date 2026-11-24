@@ -243,10 +243,9 @@ dialog h2 {
 .thead,
 .taskrow {
   display: grid;
-  grid-template-columns: minmax(140px, 1.5fr) minmax(90px, 1fr) minmax(
-      90px,
-      0.75fr
-    ) 15px;
+  grid-template-columns:
+    minmax(140px, 1.5fr) minmax(90px, 1fr) minmax(90px, 0.75fr)
+    15px;
   align-items: center;
   gap: 12px;
   text-align: left;
@@ -488,4 +487,17 @@ svg {
 .proof strong {
   font-size: 28px;
   color: #166556;
+}
+.pathnode {
+  background: #edf5f3;
+  color: #235d56;
+  border: 1px solid #c8dfda;
+  padding: 3px 8px;
+  font-size: 13px;
+}
+.path {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
 }

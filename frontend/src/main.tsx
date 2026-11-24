@@ -87,6 +87,13 @@ function App() {
     lock = useRef(false),
     attempt = useRef<LastWrite | undefined>(undefined);
   function report(e: unknown) {
+    if (e instanceof ApiError && [401, 403].includes(e.status)) {
+      setData(undefined);
+      select("");
+      setHistory({});
+      corrected.current.clear();
+      setRetry(undefined);
+    }
     setDenied(e instanceof ApiError && e.status === 401);
     setErr(
       e instanceof ApiError
@@ -507,7 +514,19 @@ function App() {
                   s.impact.map((i, k) => (
                     <article key={k}>
                       <strong>{taskName(i.taskId)}</strong>
-                      <p>{i.path.map(taskName).join(" → ")}</p>
+                      <p className="path">
+                        {i.path.map((id, n) => (
+                          <span key={id}>
+                            {n > 0 && " → "}
+                            <button
+                              className="pathnode"
+                              onClick={() => select(id)}
+                            >
+                              {taskName(id)}
+                            </button>
+                          </span>
+                        ))}
+                      </p>
                       {citations([i.source])}
                     </article>
                   ))

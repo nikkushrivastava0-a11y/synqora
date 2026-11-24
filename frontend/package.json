@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint src test",
     "test": "node --import tsx --test test/*.test.ts",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "campusfest": "node scripts/campusfest.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.86.0",

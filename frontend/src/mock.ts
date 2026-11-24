@@ -101,6 +101,14 @@ export function mockTransport(): Transport {
       });
       event("Requirement revised", op, [source], true);
       if (affected.length) {
+        if (!s.records.some((r) => r.id === fixtureCorrection))
+          s.records.push({
+            id: fixtureCorrection,
+            workspaceId: s.overview.workspaceId,
+            title: "Corrected registration form result",
+            body: "Uses the revised registration field.",
+            revision: 1,
+          });
         s.conflicts.push({
           id: crypto.randomUUID(),
           taskId: affected[0].id,
