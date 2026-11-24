@@ -1,0 +1,13 @@
+create table campus_users(id uuid primary key, workspace uuid not null,name text not null,role text check(role in ('human','agent')));
+create table records(id uuid primary key, workspace uuid not null,title text not null);
+create table record_revisions(record uuid references records,revision int check(revision>0),body text not null, primary key(record,revision));
+create table tasks(id uuid primary key,workspace uuid not null,title text not null,status text not null,owner uuid references campus_users);
+create table task_sources(task uuid references tasks,record uuid references records,primary key(task,record));
+create table task_dependencies(parent uuid references tasks,child uuid references tasks,primary key(parent,child));
+create table task_claims(task uuid primary key references tasks,actor uuid references campus_users,expires timestamptz not null);
+create table agent_results(id uuid primary key,task uuid references tasks,actor uuid references campus_users,body text not null,sources jsonb not null,state text not null,created timestamptz default now());
+create table conflicts(id uuid primary key,workspace uuid not null,task uuid references tasks,result uuid references agent_results,used jsonb not null,current jsonb not null,state text not null);
+create table approvals(id uuid primary key,workspace uuid not null,conflict uuid references conflicts,result uuid references agent_results,state text not null,decider uuid references campus_users,reason text,sources jsonb not null);
+create table operations(id uuid primary key,actor uuid references campus_users,digest text not null,response jsonb not null);
+create table audit_events(id uuid primary key default gen_random_uuid(),workspace uuid not null,at timestamptz default now(),action text not null,actor uuid references campus_users,agent uuid references campus_users,operation uuid unique references operations,sources jsonb not null,reason text);
+create table impact(seq bigint generated always as identity,workspace uuid not null,source jsonb not null,task uuid references tasks,path jsonb not null);
