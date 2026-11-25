@@ -26,6 +26,26 @@ function sign(value){return createHmac('sha256',password()).update('synqora:'+va
 function authenticated(req){const token=(req.headers.cookie||'').split(';').map(v=>v.trim()).find(v=>v.startsWith('synqora_session='))?.slice(16);if(password().length<16||!token)return false;const [exp,signature]=token.split('.');return /^\d+$/.test(exp)&&Number(exp)>Date.now()&&typeof signature==='string'&&equal(signature,sign(exp));}
 function sameOrigin(req){const host=req.headers.host;return typeof host==='string'&&req.headers.origin==='https://'+host&&req.headers['sec-fetch-site']!=='cross-site';}
 async function bodyOf(req){let b=req.body;if(b===undefined){const parts=[];let size=0;for await(const part of req){size+=part.length;if(size>65536)throw fail(413,'Request too large');parts.push(part);}b=Buffer.concat(parts).toString();}if(typeof b==='string'||Buffer.isBuffer(b)){if(Buffer.byteLength(b)>65536)throw fail(413,'Request too large');try{b=JSON.parse(b.toString());}catch{throw fail(400,'Invalid JSON');}}if(!b||typeof b!=='object'||Array.isArray(b)||Buffer.byteLength(JSON.stringify(b))>65536)throw fail(400,'Invalid input');return b;}
+const relayURL=()=>{
+  const raw=process.env.SYNQORA_RELAY_URL;
+  if(!raw)return null;
+  const u=new URL(raw);
+  if(u.protocol!=='https:'||! /^[a-z0-9-]+\.trycloudflare\.com$/.test(u.hostname)||u.username||u.password||u.port||u.pathname!=='/'||u.search||u.hash)throw fail(503,'Invalid relay URL.');
+  if(password().length<24)throw fail(503,'Configure a strong relay operator password.');
+  return u.origin;
+};
+async function relayRequest(route,method,body){
+  const base=relayURL();
+  const allowedRead=/^workspaces\/[0-9a-f-]{36}\/(overview|agents|tasks|records|events|benchmarks|conflicts|impact|approvals)$/i;
+  const allowedWrite=/^(workspaces\/[0-9a-f-]{36}\/(plan|review|records)|records\/[0-9a-f-]{36}\/revisions|conflicts\/[0-9a-f-]{36}\/resolve|approvals\/[0-9a-f-]{36}\/decision)$/i;
+  if(!(method==='GET'?allowedRead.test(route):method==='POST'&&allowedWrite.test(route)))throw fail(404,'Route unavailable');
+  try{
+    const response=await fetch(base+'/api/'+route,{method,redirect:'error',signal:AbortSignal.timeout(125000),headers:{'x-synqora-relay-token':password(),'Content-Type':'application/json'},body:method==='POST'?JSON.stringify(body):undefined});
+    const payload=await response.json();
+    if(typeof payload.success!=='boolean')throw Error('Bad relay response');
+    return {status:response.status,payload};
+  }catch{throw fail(502,'Local demo relay unavailable. Keep the laptop and tunnel running.');}
+}
 async function exclusive(name,fn){const c=await pool.connect();try{const key=name==='plan'?76432020:76432021;const r=await c.query('select pg_try_advisory_lock($1) as locked',[key]);if(!r.rows[0].locked)throw fail(409,'An AI job is already running.');try{return await fn();}finally{await c.query('select pg_advisory_unlock($1)',[key]);}}finally{c.release();}}
 export default async function handler(req,res){
   res.setHeader('Cache-Control','no-store');res.setHeader('Content-Type','application/json');res.setHeader('X-Content-Type-Options','nosniff');
@@ -35,7 +55,11 @@ export default async function handler(req,res){
     const route=req.query?.route??url.searchParams.get('route')??url.pathname.replace(/^\/api\//,'');
     if(typeof route!=='string'||! /^[a-zA-Z0-9/-]+$/.test(route))throw fail(404,'Route unavailable');
     const method=req.method;
-    if(route==='status'&&method==='GET')return reply(200,{databaseConfigured:!!process.env.DATABASE_URL,authenticated:authenticated(req),writesConfigured:password().length>=16,aiConfigured:!!process.env.OPENROUTER_API_KEY&&!!process.env.GEMINI_API_KEY&&process.env.SYNQORA_GEMINI_FREE_CONFIRMED==='1'});
+    if(route==='status'&&method==='GET'){
+      let relayOnline=false;
+      if(process.env.SYNQORA_RELAY_URL){try{const r=await relayRequest('workspaces/'+workspace+'/overview','GET');relayOnline=r.status===200&&r.payload.success===true;}catch{}}
+      return reply(200,{databaseConfigured:relayOnline||!!process.env.DATABASE_URL,relayOnline,authenticated:authenticated(req),writesConfigured:password().length>=16,aiConfigured:!!process.env.OPENROUTER_API_KEY&&!!process.env.GEMINI_API_KEY&&process.env.SYNQORA_GEMINI_FREE_CONFIRMED==='1'});
+    }
     if(method==='POST'&&!sameOrigin(req))throw fail(403,'Same-origin request required');
     if(route==='login'&&method==='POST'){const b=await bodyOf(req);if(password().length<16||typeof b.password!=='string'||!equal(b.password,password()))throw fail(401,'Invalid demo password');const exp=String(Date.now()+8*60*60*1000);res.setHeader('Set-Cookie','synqora_session='+exp+'.'+sign(exp)+'; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=28800');return reply(200,{authenticated:true});}
     if(route==='logout'&&method==='POST'){res.setHeader('Set-Cookie','synqora_session=; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=0');return reply(200,{authenticated:false});}
@@ -43,8 +67,13 @@ export default async function handler(req,res){
     if(method==='POST'&&!authenticated(req))throw fail(401,'Sign in using the demo password to change the workspace.');
     const [group,target,action,...rest]=route.split('/');if(rest.length||!target||!action)throw fail(404,'Route unavailable');
     if(!/^[0-9a-f-]{36}$/i.test(target))throw fail(404,'Route unavailable');
-    const db=await database();
     const body=method==='POST'?await bodyOf(req):{};
+    if(process.env.SYNQORA_RELAY_URL){
+      const remote=await relayRequest(route,method,body);
+      res.statusCode=remote.status;
+      return res.end(JSON.stringify(remote.payload));
+    }
+    const db=await database();
     if(group==='workspaces'&&target===workspace&&action==='plan'&&method==='POST'){
       if(!process.env.OPENROUTER_API_KEY)throw fail(503,'Planner API key not configured.');
       const input=planInput.parse(body);
