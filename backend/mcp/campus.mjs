@@ -1,7 +1,7 @@
 import { randomUUID, createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { z } from "zod";
-import { request } from "./api-contract.ts";
+import { request } from "./api-contract.mjs";
 import { planSchema } from "./gpt-planner.mjs";
 
 export const id = (n) =>
