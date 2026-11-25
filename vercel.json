@@ -1,0 +1,18 @@
+{
+  "framework": "vite",
+  "installCommand": "npm install --no-audit --no-fund && npm --prefix frontend ci --no-audit --no-fund",
+  "buildCommand": "npm --prefix frontend run build",
+  "outputDirectory": "frontend/dist",
+  "functions": {
+    "api/index.mjs": {
+      "maxDuration": 150,
+      "includeFiles": "backend/mcp/campus.sql"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/:route*",
+      "destination": "/api/index?route=:route*"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "name": "synqora-hosted",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": "24.x"
+  },
+  "scripts": {
+    "build": "npm --prefix frontend run build"
+  },
+  "dependencies": {
+    "pg": "^8.16.3",
+    "zod": "3.25.76",
+    "@electric-sql/pglite": "0.6.0"
+  }
+}

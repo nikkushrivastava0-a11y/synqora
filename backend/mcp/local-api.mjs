@@ -3,6 +3,11 @@ import { randomBytes } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { openCampus, operate, inputs, id, workspace } from "./campus.mjs";
+import { planInput } from "./gpt-planner.mjs";
+import { generatePlan } from "./free-planner-adapter.mjs";
+let planning = false;
+import { reviewPlan, reviewInput } from "./gemini-reviewer.mjs";
+let reviewing = false;
 
 const dir = resolve(process.env.SYNQORA_STATE_DIR ?? ".synqora-local");
 await mkdir(dir, { recursive: true, mode: 0o700 });
@@ -76,6 +81,38 @@ const server = createServer(async (req, res) => {
       }
     }
     if (!body || typeof body !== "object" || Array.isArray(body)) throw error(400, "Expected a JSON object");
+    if(prefix==="api" && group==="workspaces" && target===workspace && action==="plan" && req.method==="POST"){
+      if(user!==id(3))throw error(403,"Human operator required");
+      const input=planInput.parse(body);
+      if(planning)throw error(409,"Planner already running");
+      planning=true;
+      try{
+        let data;
+        try {
+          data=await operate(db,user,"resume_task",null,{operationId:input.operationId});
+          if(data.prompt!==input.prompt||!data.planId)throw error(409,"Operation mismatch");
+        } catch(e) {
+          if(e.status!==404)throw e;
+          const generated=await generatePlan(input.prompt);
+          data=await operate(db,user,"saveDynamicPlan",workspace,{...input,...generated});
+        }
+        res.writeHead(200,{"Content-Type":"application/json","Cache-Control":"no-store"});
+        res.end(JSON.stringify({success:true,data}));
+      }finally{planning=false;}
+      return;
+    }
+    if (prefix === "api" && group === "workspaces" && target === workspace && action === "review" && req.method === "POST") {
+      if (user !== id(3)) throw error(403, "Human operator required");
+      const input = reviewInput.parse(body);
+      if (reviewing) throw error(409, "Reviewer already running");
+      reviewing = true;
+      try {
+        const data = await reviewPlan({input, call: (op, args) => operate(db, id(5), op, args.workspaceId ?? args.taskId ?? args.recordId ?? null, args)});
+        res.writeHead(200, {"Content-Type":"application/json", "Cache-Control":"no-store"});
+        res.end(JSON.stringify({success:true,data}));
+      } finally { reviewing = false; }
+      return;
+    }
     let op,
       scope = target;
     if (

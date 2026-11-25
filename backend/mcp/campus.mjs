@@ -1,8 +1,8 @@
-import { PGlite } from "@electric-sql/pglite";
 import { randomUUID, createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { z } from "zod";
-import { request } from "./api-contract.ts";
+import { request } from "./api-contract.mjs";
+import { planSchema } from "./gpt-planner.mjs";
 
 export const id = (n) =>
   "00000000-0000-4000-8000-" + String(n).padStart(12, "0");
@@ -39,9 +39,12 @@ const fail = (status, message) => {
 const rows = async (db, sql, args = []) => (await db.query(sql, args)).rows;
 const one = async (db, sql, args) => (await rows(db, sql, args))[0];
 export async function openCampus(path) {
-  const db = new PGlite(path);
-  if (!(await one(db, "select to_regclass('campus_users') as name")).name) {
-    await db.transaction(async (tx) => {
+  const { PGlite } = await import("@electric-sql/pglite");
+  return initializeCampus(new PGlite(path));
+}
+export async function initializeCampus(db) {
+  await db.transaction(async (tx) => {
+    if (!(await one(tx, "select to_regclass('campus_users') as name")).name) {
       await tx.exec(
         await readFile(new URL("./campus.sql", import.meta.url), "utf8"),
       );
@@ -85,14 +88,14 @@ export async function openCampus(path) {
         id(10),
         id(12),
       ]);
-    });
-  }
-  await db.exec(`create table if not exists result_reviews (
+    }
+    await tx.exec(`create table if not exists result_reviews (
     review uuid primary key references agent_results(id),
     artifact uuid not null references agent_results(id),
     revision int not null,
     foreign key (artifact,revision) references record_revisions(record,revision)
   )`);
+  });
   return db;
 }
 const reads = new Set([
@@ -320,6 +323,39 @@ export async function operate(db, user, op, target, input = {}) {
           'select id,task as "taskId",result as "proposedResultId",used,current,state from conflicts where workspace=$1 order by id',
           [w],
         );
+      case "saveDynamicPlan": {
+        human();
+        if(target!==w)fail(404,"Workspace unavailable");
+        const graph=planSchema.parse(input.plan);
+        const planId=randomUUID(), planTaskId=randomUUID(), reviewTaskId=randomUUID();
+        const requirements=[], tasks=[], rm=new Map(), tm=new Map();
+        for(const r of graph.requirements){
+          const rid=randomUUID(); rm.set(r.key,rid);
+          await run("insert into records values($1,$2,$3)",[rid,w,r.title]);
+          await run("insert into record_revisions values($1,1,$2)",[rid,r.body]);
+          requirements.push({id:rid,title:r.title,body:r.body,revision:1});
+        }
+        for(const t of graph.tasks){
+          const tid=randomUUID(); tm.set(t.key,tid);
+          await run("insert into tasks(id,workspace,title,status) values($1,$2,$3,'open')",[tid,w,t.title]);
+          tasks.push({id:tid,title:t.title,status:"open"});
+        }
+        for(const t of graph.tasks){
+          for(const k of t.requirements)await run("insert into task_sources values($1,$2)",[tm.get(t.key),rm.get(k)]);
+          for(const k of t.dependsOn)await run("insert into task_dependencies values($1,$2)",[tm.get(k),tm.get(t.key)]);
+        }
+        await run("insert into tasks(id,workspace,title,status,owner) values($1,$2,$3,'completed',$4)",[planTaskId,w,"AI project planning",id(4)]);
+        await run("insert into tasks(id,workspace,title,status) values($1,$2,$3,'open')",[reviewTaskId,w,"Independent AI plan review"]);
+        // Review depends on all requirement revisions; implementation tasks depend only on their declared sources.
+        for(const r of requirements)await run("insert into task_sources values($1,$2)",[reviewTaskId,r.id]);
+        const evidence=requirements.map(r=>({recordId:r.id,revision:1})).sort((a,b)=>a.recordId.localeCompare(b.recordId));
+        const body=JSON.stringify({provider:input.provider,model:input.model,createdAt:input.createdAt,prompt:input.prompt,plan:graph,requirements,tasks,rawResponse:input.rawResponse});
+        await run("insert into agent_results(id,task,actor,body,sources,state) values($1,$2,$3,$4,$5,'accepted')",[planId,planTaskId,id(4),body,JSON.stringify(evidence)]);
+        await run("insert into records values($1,$2,$3)",[planId,w,"AI project planning result"]);
+        await run("insert into record_revisions values($1,1,$2)",[planId,body]);
+        out={planId,prompt:input.prompt,revision:1,provider:input.provider,model:input.model,createdAt:input.createdAt,reviewTaskId,requirements,tasks,rawResponse:input.rawResponse};
+        break;
+      }
       case "createRecord": {
         if (target !== w) fail(404, "Workspace unavailable");
         human();
@@ -583,6 +619,7 @@ export async function operate(db, user, op, target, input = {}) {
           oid,
           JSON.stringify(
             out.sources ??
+              (out.planId ? [{recordId:out.planId,revision:1}] : undefined) ??
               out.used ??
               (out.revision
                 ? [{ recordId: out.id, revision: out.revision }]

@@ -30,7 +30,7 @@ import {
 import { ApiError, type Workspace, type Payload, type WriteKey } from "./api";
 import { auth, connect, mockMode } from "./runtime";
 import "./style.css";
-import { campusFest } from "./fixture";
+import { LiveModels } from "./LiveModels";
 
 const views = [
   "Task board",
@@ -58,17 +58,6 @@ function Panel({ title, children }: { title: string; children: ReactNode }) {
     </section>
   );
 }
-function DatasetPreview({ view }: { view: View }) {
-  const sample = campusFest();
-  return <section className="panel dataset-preview" aria-label="Read-only sample dataset">
-    <small>CampusFest · Sample dataset · Read-only</small>
-    {view === "Task board" && <><h2>Workspace tasks</h2><p>{sample.tasks.length} sample tasks · {sample.agents.length} agents</p><div className="table"><div className="thead"><span>Task</span><span>Owner</span><span>Status</span><span /></div>{sample.tasks.map(t => <div className="taskrow" key={t.id}><strong>{t.title}</strong><span>{sample.agents.find(a => a.id === t.ownerAgentId)?.name || "Unassigned"}</span><span className={"tag " + t.status}>{tags[t.status]}</span></div>)}</div></>}
-    {view === "Requirement impact" && <><h2>Source requirements</h2>{sample.records.map(r => <article key={r.id}><strong>{r.title} · r{r.revision}</strong><p>{r.body}</p></article>)}<p>No affected dependency paths in the initial sample.</p></>}
-    {view === "Conflicts & approvals" && <><h2>Conflict queue</h2><p>{sample.conflicts.length} conflicts · {sample.overview.pendingApprovals} pending approvals in the initial sample.</p></>}
-    {view === "Evidence timeline" && <><h2>Workspace events</h2>{sample.events.map(e => <article key={e.id}><small>{new Date(e.at).toLocaleString()}</small><h3>{e.action}</h3></article>)}</>}
-    {view === "Recovery proof" && <><h2>Recovery measurements</h2><p>No recovery measurements in the initial sample. Live backend results are required to verify replay.</p></>}
-  </section>;
-}
 function App({ onAccount, accountLabel }: { onAccount: () => void; accountLabel: string }) {
   const [paused, setPaused] = useState(false);
   const [view, setView] = useState<View>("Task board"),
@@ -77,7 +66,6 @@ function App({ onAccount, accountLabel }: { onAccount: () => void; accountLabel:
     [selected, select] = useState(""),
     [filter, setFilter] = useState("all"),
     [err, setErr] = useState(""),
-    [previewAllowed, setPreviewAllowed] = useState(false),
     [denied, setDenied] = useState(false),
     [busy, setBusy] = useState(false),
     [note, setNote] = useState(""),
@@ -100,7 +88,7 @@ function App({ onAccount, accountLabel }: { onAccount: () => void; accountLabel:
     lock = useRef(false),
     attempt = useRef<LastWrite | undefined>(undefined);
   function report(e: unknown) {
-    setPreviewAllowed(e instanceof ApiError && [502, 503, 504].includes(e.status));
+
     if (e instanceof ApiError && [401, 403].includes(e.status)) {
       setData(undefined);
       select("");
@@ -124,7 +112,7 @@ function App({ onAccount, accountLabel }: { onAccount: () => void; accountLabel:
     lock.current = true;
     setBusy(true);
     setErr("");
-    setPreviewAllowed(false);
+
     setDenied(false);
     try {
       api.current ??= await connect();
@@ -173,7 +161,7 @@ function App({ onAccount, accountLabel }: { onAccount: () => void; accountLabel:
     lock.current = true;
     setBusy(true);
     setErr("");
-    setPreviewAllowed(false);
+
     setNote("");
     try {
       const response = await api.current.write(item.key, item.id, item.body);
@@ -391,7 +379,7 @@ function App({ onAccount, accountLabel }: { onAccount: () => void; accountLabel:
           )}
           {denied && <button className="secondary" onClick={onAccount}>Sign in to access workspace</button>}
           {!s && !err && <p role="status">Loading workspace…</p>}
-          {!s && err && previewAllowed && <DatasetPreview view={view} />}
+          {s && view === "Task board" && !mockMode && <LiveModels workspace={s} refresh={refresh} />}
           {s && view === "Task board" && (
             <>
               <div className="stats">
@@ -892,4 +880,20 @@ function Entry() {
   );
   return <><App onAccount={() => void account()} accountLabel={signedIn ? "Sign out" : "Sign in"} />{message && <div className="error account-error" role="alert">{message}</div>}</>;
 }
-createRoot(document.getElementById("root")!).render(<Entry />);
+
+function CloudEntry() {
+  const [status,setStatus]=useState<{databaseConfigured:boolean;authenticated:boolean;writesConfigured:boolean;aiConfigured:boolean}>();
+  const [login,setLogin]=useState(false);
+  const [message,setMessage]=useState("");
+  const [pending,setPending]=useState(false);
+  useEffect(()=>{fetch("/api/status",{credentials:"include"}).then(r=>r.json()).then(r=>{if(!r.success)throw Error("Unavailable");setStatus(r.data);}).catch(()=>setMessage("Hosted API unavailable."));},[]);
+  async function signIn(e:FormEvent<HTMLFormElement>){
+    e.preventDefault();setPending(true);setMessage("");
+    const password=new FormData(e.currentTarget).get("password");
+    try{const response=await fetch("/api/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({password})});const result=await response.json();if(!response.ok)throw Error(result.error?.message||"Sign-in failed");location.reload();}catch(e){setMessage(e instanceof Error?e.message:"Sign-in failed");}finally{setPending(false);}
+  }
+  if(login)return <main className="login-screen"><section className="login-card"><div className="brand"><span><Layers3/></span>SYNQORA</div>{!status?<p>{message||"Checking hosted workspace…"}</p>:!status.databaseConfigured?<><h1>Cloud setup required</h1><p>The application has been deployed. Connect the existing local demo relay or a persistent PostgreSQL database to load the actual workspace. No simulated AI results are displayed.</p></>:<><h1>Demo operator access</h1><p>View the workspace without a password. Changes and AI calls require operator access.</p><form onSubmit={signIn}><label>Demo password<input type="password" name="password" required autoComplete="current-password"/></label><button disabled={pending||!status.writesConfigured}>{pending?"Signing in…":"Sign in"}</button></form>{message&&<p role="alert">{message}</p>}<button className="secondary" onClick={()=>setLogin(false)}>Back to workspace</button></>}</section></main>;
+  return <App onAccount={()=>{if(status?.authenticated){void fetch("/api/logout",{method:"POST",headers:{"Content-Type":"application/json"},body:"{}"}).then(()=>location.reload());}else setLogin(true);}} accountLabel={status?.authenticated?"Sign out":"Operator access"}/>;
+}
+
+createRoot(document.getElementById("root")!).render(import.meta.env.VITE_CLOUD_DEMO === "1" ? <CloudEntry /> : <Entry />);
