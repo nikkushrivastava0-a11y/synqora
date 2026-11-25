@@ -1,4 +1,3 @@
-import { PGlite } from "@electric-sql/pglite";
 import { randomUUID, createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { z } from "zod";
@@ -40,9 +39,12 @@ const fail = (status, message) => {
 const rows = async (db, sql, args = []) => (await db.query(sql, args)).rows;
 const one = async (db, sql, args) => (await rows(db, sql, args))[0];
 export async function openCampus(path) {
-  const db = new PGlite(path);
-  if (!(await one(db, "select to_regclass('campus_users') as name")).name) {
-    await db.transaction(async (tx) => {
+  const { PGlite } = await import("@electric-sql/pglite");
+  return initializeCampus(new PGlite(path));
+}
+export async function initializeCampus(db) {
+  await db.transaction(async (tx) => {
+    if (!(await one(tx, "select to_regclass('campus_users') as name")).name) {
       await tx.exec(
         await readFile(new URL("./campus.sql", import.meta.url), "utf8"),
       );
@@ -86,14 +88,14 @@ export async function openCampus(path) {
         id(10),
         id(12),
       ]);
-    });
-  }
-  await db.exec(`create table if not exists result_reviews (
+    }
+    await tx.exec(`create table if not exists result_reviews (
     review uuid primary key references agent_results(id),
     artifact uuid not null references agent_results(id),
     revision int not null,
     foreign key (artifact,revision) references record_revisions(record,revision)
   )`);
+  });
   return db;
 }
 const reads = new Set([
