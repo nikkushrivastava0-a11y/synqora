@@ -880,4 +880,19 @@ function Entry() {
   );
   return <><App onAccount={() => void account()} accountLabel={signedIn ? "Sign out" : "Sign in"} />{message && <div className="error account-error" role="alert">{message}</div>}</>;
 }
-createRoot(document.getElementById("root")!).render(<Entry />);
+function CloudEntry() {
+  const [status,setStatus]=useState<{databaseConfigured:boolean;authenticated:boolean;writesConfigured:boolean;aiConfigured:boolean}>();
+  const [login,setLogin]=useState(false);
+  const [message,setMessage]=useState("");
+  const [pending,setPending]=useState(false);
+  useEffect(()=>{fetch("/api/status",{credentials:"include"}).then(r=>r.json()).then(r=>{if(!r.success)throw Error("Unavailable");setStatus(r.data);}).catch(()=>setMessage("Hosted API unavailable."));},[]);
+  async function signIn(e:FormEvent<HTMLFormElement>){
+    e.preventDefault();setPending(true);setMessage("");
+    const password=new FormData(e.currentTarget).get("password");
+    try{const response=await fetch("/api/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({password})});const result=await response.json();if(!response.ok)throw Error(result.error?.message||"Sign-in failed");location.reload();}catch(e){setMessage(e instanceof Error?e.message:"Sign-in failed");}finally{setPending(false);}
+  }
+  if(!status||!status.databaseConfigured||login)return <main className="login-screen"><section className="login-card"><div className="brand"><span><Layers3/></span>SYNQORA</div>{!status?<p>{message||"Checking hosted workspace…"}</p>:!status.databaseConfigured?<><h1>Cloud setup required</h1><p>The application has been deployed. A persistent PostgreSQL connection must be configured before the workspace can load. No simulated AI results are displayed.</p></>:<><h1>Demo operator access</h1><p>View the workspace without a password. Changes and AI calls require operator access.</p><form onSubmit={signIn}><label>Demo password<input type="password" name="password" required autoComplete="current-password"/></label><button disabled={pending||!status.writesConfigured}>{pending?"Signing in…":"Sign in"}</button></form>{message&&<p role="alert">{message}</p>}<button className="secondary" onClick={()=>setLogin(false)}>Back to workspace</button></>}</section></main>;
+  return <App onAccount={()=>{if(status.authenticated){void fetch("/api/logout",{method:"POST",headers:{"Content-Type":"application/json"},body:"{}"}).then(()=>location.reload());}else setLogin(true);}} accountLabel={status.authenticated?"Sign out":"Operator access"}/>;
+}
+
+createRoot(document.getElementById("root")!).render(import.meta.env.VITE_CLOUD_DEMO === "1" ? <CloudEntry /> : <Entry />);
