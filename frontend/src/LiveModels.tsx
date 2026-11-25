@@ -38,8 +38,8 @@ async function post<T>(path:string,body:unknown):Promise<T>{
 export function LiveModels({workspace,refresh}:{workspace:Workspace;refresh:()=>Promise<void>}){
   const [restored]=useState(()=>restore(workspace));
   const [prompt,setPrompt]=useState(restored.plan?.prompt || "Plan a simple online book store with catalog, search, cart and Razorpay payments. Define 5 tasks and dependencies.");
-  const [plan,setPlan]=useState<Plan>(restored.plan);
-  const [review,setReview]=useState<Review>(restored.review);
+  const [plan,setPlan]=useState<Plan | undefined>(restored.plan);
+  const [review,setReview]=useState<Review | undefined>(restored.review);
   const payment=restored.plan?.requirements.find(r=>/razorpay|payment/i.test(r.title+" "+r.body));
   const [requirement,setRequirement]=useState(payment?.id||"");
   const [replacement,setReplacement]=useState((workspace.records.find(r=>r.id===payment?.id)?.body||"").replace(/razorpay/gi,"Stripe"));
