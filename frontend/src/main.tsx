@@ -379,6 +379,7 @@ function App({ onAccount, accountLabel }: { onAccount: () => void; accountLabel:
           )}
           {denied && <button className="secondary" onClick={onAccount}>Sign in to access workspace</button>}
           {!s && !err && <p role="status">Loading workspace…</p>}
+          {view === "Task board" && <ProjectFiles />}
           {s && view === "Task board" && !mockMode && <LiveModels workspace={s} refresh={refresh} />}
           {s && view === "Task board" && (
             <>
@@ -880,6 +881,27 @@ function Entry() {
   );
   return <><App onAccount={() => void account()} accountLabel={signedIn ? "Sign out" : "Sign in"} />{message && <div className="error account-error" role="alert">{message}</div>}</>;
 }
+function ProjectFiles() {
+  const [file,setFile]=useState<File>();
+  const [error,setError]=useState("");
+  const [drag,setDrag]=useState(false);
+  const input=useRef<HTMLInputElement>(null);
+  const choose=(f?:File)=>{if(!f)return;setError("");if(!/\.(ppt|pptx|pdf)$/i.test(f.name)||f.size>50*1024*1024||f.size===0){setFile(undefined);setError("Choose a non-empty PPT, PPTX or PDF file up to 50 MB.");return;}setFile(f);};
+  return <section aria-label="Project file share" style={{background:"linear-gradient(135deg,#f5efff,#edf5ff)",color:"#28213d",border:"1px solid #dcd2fa",borderRadius:20,padding:24,margin:"20px 0"}}>
+    <div style={{display:"flex",alignItems:"center",gap:12}}><span style={{background:"linear-gradient(135deg,#8b5cf6,#3b82f6)",color:"white",borderRadius:12,padding:12,display:"inline-flex"}}><Layers3 size={23}/></span><h2 style={{margin:0,color:"#28213d"}}>Project file share</h2></div>
+    <p style={{color:"#625b76",margin:"14px 0"}}>Upload your pitch deck or supporting architectural document as .ppt, .pptx, or .pdf.</p>
+    <div onDragOver={e=>{e.preventDefault();setDrag(true);}} onDragLeave={()=>setDrag(false)} onDrop={e=>{e.preventDefault();setDrag(false);choose(e.dataTransfer.files[0]);}} style={{border:"2px dashed "+(drag?"#7c3aed":"#b29af4"),background:drag?"#e9dfff":"#ffffffbb",borderRadius:16,padding:"28px 16px",textAlign:"center"}}>
+      <FileText size={42} color="#8055ef"/><h3 style={{color:"#28213d"}}>Drag and drop your project file</h3><p style={{color:"#625b76"}}>or select a file from your device</p>
+      <input ref={input} type="file" accept=".ppt,.pptx,.pdf" hidden onChange={e=>{choose(e.target.files?.[0]);e.target.value="";}}/>
+      <button type="button" onClick={()=>input.current?.click()} style={{background:"linear-gradient(100deg,#8b5cf6,#5476f6)",color:"#fff",border:0,borderRadius:9,padding:"11px 24px"}}>Browse files</button>
+      <p style={{color:"#6646b7",fontSize:13}}>PPT · PPTX · PDF</p>
+      {error&&<p role="alert" style={{color:"#b42318"}}>{error}</p>}
+      {file&&<div role="status" style={{overflowWrap:"anywhere",color:"#187754"}}><p>{file.name} — {(file.size/1024/1024).toFixed(2)} MB selected</p><button type="button" onClick={()=>setFile(undefined)}>Remove</button></div>}
+    </div>
+    <p style={{fontSize:12,color:"#625b76",marginBottom:0}}>Maximum size: 50 MB. File selection preview only; files are not uploaded to a server.</p>
+  </section>;
+}
+
 function CloudEntry() {
   const [status,setStatus]=useState<{databaseConfigured:boolean;authenticated:boolean;writesConfigured:boolean;aiConfigured:boolean}>();
   const [login,setLogin]=useState(false);
@@ -891,7 +913,7 @@ function CloudEntry() {
     const password=new FormData(e.currentTarget).get("password");
     try{const response=await fetch("/api/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({password})});const result=await response.json();if(!response.ok)throw Error(result.error?.message||"Sign-in failed");location.reload();}catch(e){setMessage(e instanceof Error?e.message:"Sign-in failed");}finally{setPending(false);}
   }
-  if(!status||!status.databaseConfigured||login)return <main className="login-screen"><section className="login-card"><div className="brand"><span><Layers3/></span>SYNQORA</div>{!status?<p>{message||"Checking hosted workspace…"}</p>:!status.databaseConfigured?<><h1>Cloud setup required</h1><p>The application has been deployed. A persistent PostgreSQL connection must be configured before the workspace can load. No simulated AI results are displayed.</p></>:<><h1>Demo operator access</h1><p>View the workspace without a password. Changes and AI calls require operator access.</p><form onSubmit={signIn}><label>Demo password<input type="password" name="password" required autoComplete="current-password"/></label><button disabled={pending||!status.writesConfigured}>{pending?"Signing in…":"Sign in"}</button></form>{message&&<p role="alert">{message}</p>}<button className="secondary" onClick={()=>setLogin(false)}>Back to workspace</button></>}</section></main>;
+  if(!status||!status.databaseConfigured||login)return <main className="login-screen"><section className="login-card"><div className="brand"><span><Layers3/></span>SYNQORA</div>{!status?<p>{message||"Checking hosted workspace…"}</p>:!status.databaseConfigured?<><h1>Cloud setup required</h1><p>The application has been deployed. A persistent PostgreSQL connection must be configured before the workspace can load. No simulated AI results are displayed.</p><ProjectFiles /></>:<><h1>Demo operator access</h1><p>View the workspace without a password. Changes and AI calls require operator access.</p><form onSubmit={signIn}><label>Demo password<input type="password" name="password" required autoComplete="current-password"/></label><button disabled={pending||!status.writesConfigured}>{pending?"Signing in…":"Sign in"}</button></form>{message&&<p role="alert">{message}</p>}<button className="secondary" onClick={()=>setLogin(false)}>Back to workspace</button></>}</section></main>;
   return <App onAccount={()=>{if(status.authenticated){void fetch("/api/logout",{method:"POST",headers:{"Content-Type":"application/json"},body:"{}"}).then(()=>location.reload());}else setLogin(true);}} accountLabel={status.authenticated?"Sign out":"Operator access"}/>;
 }
 
